@@ -162,7 +162,7 @@ const Toast = (function() {
 })();
 
 /* ════════════════════════════════════════════════════
-   6. HEADER SCROLL
+   6. HEADER SCROLL7th
 ════════════════════════════════════════════════════ */
 const header = $('#header');
 window.addEventListener('scroll', () => {
@@ -198,6 +198,21 @@ hamBtn?.addEventListener('click', () =>
 );
 overlay?.addEventListener('click', closeDrawer);
 $('#closeDrawer')?.addEventListener('click', closeDrawer);
+
+function toggleContent(id) {
+  const selectedContent = document.getElementById(id);
+  const allContents = document.querySelectorAll('.item-content');
+
+  allContents.forEach((content) => {
+    if (content.id === id) {
+      // Toggle the clicked one
+      content.classList.toggle('active');
+    } else {
+      // Close all others
+      content.classList.remove('active');
+    }
+  });
+}
 
 /* ════════════════════════════════════════════════════
    8. SPA NAVIGATION
@@ -266,29 +281,6 @@ const revealObs = new IntersectionObserver(entries => {
 }, { threshold: 0.1, rootMargin: '0px 0px -36px 0px' });
 
 $$('.reveal, .reveal-left, .reveal-right').forEach(el => revealObs.observe(el));
-
-/* ════════════════════════════════════════════════════
-   11. CLOCK
-════════════════════════════════════════════════════ */
-(function clock() {
-  const el = $('#clock');
-  if (!el) return;
-
-  function tick() {
-    const n = new Date();
-    const h = String(n.getHours() % 12 || 12).padStart(2, '0');
-    const m = String(n.getMinutes()).padStart(2, '0');
-    const s = String(n.getSeconds()).padStart(2, '0');
-    const ampm = n.getHours() >= 12 ? 'PM' : 'AM';
-    const day  = n.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-    const date = n.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-    el.innerHTML = `
-      <span class="ck-d">${day} · ${date}</span>
-      <span class="ck-t">${h}:${m}:${s} <small style="opacity:.55;font-size:.62em">${ampm}</small></span>
-    `;
-  }
-  tick(); setInterval(tick, 1000);
-})();
 
 /* ════════════════════════════════════════════════════
    12. SERVICES TAB SYSTEM
@@ -609,226 +601,5 @@ if (yr) yr.textContent = new Date().getFullYear();
     btn.appendChild(dot);
     dot.addEventListener('animationend', () => dot.remove(), { once: true });
   });
-})();
+})()
 
-/* ════════════════════════════════════════════════════
-   22. AI CHATBOT — Claude API, streaming, premium UI
-════════════════════════════════════════════════════ */
-(function chatbot() {
-
-  const SYSTEM = `You are FEMIX AI — a sharp, warm, and professional assistant for FEMIX Plumbing Services in Ile Ife, Osun State, Nigeria.
-
-KEY FACTS:
-• Phone: +234 906 0708 332  • Email: femixplumbingservices931@gmail.com
-• Location: Ile Ife, Osun State, Nigeria  • Hours: Mon–Sat 7am–7pm (24/7 Emergency)
-• Est. 2019 · Licensed & Certified
-
-SERVICES: Residential plumbing · Commercial & estate · Water systems & boreholes · Bathroom & kitchen · Leak detection · Water efficiency · 24/7 emergency response
-
-TONE: Professional, warm, concise (2–3 sentences max per point). Nigerian-friendly. Always CTA at end. No exact pricing — recommend free quote. Emergency? Give phone number immediately.`;
-
-  let history = [], busy = false;
-
-  const widget  = $('#chatWidget');
-  const trigger = $('#chatTrigger');
-  const panel   = $('#chatPanel');
-  const log     = $('#chatMessages');
-  const input   = $('#chatInput');
-  const sendBtn = $('#chatSend');
-  const minBtn  = $('#chatMinimize');
-  const chips   = $('#chatQuick');
-
-  if (!widget) return;
-
-  // ── Open / Close ──
-  function openChat() {
-    widget.classList.add('open');
-    trigger.setAttribute('aria-expanded', 'true');
-    panel.setAttribute('aria-hidden', 'false');
-    if (!log.hasChildNodes()) welcome();
-    setTimeout(() => input?.focus(), 380);
-  }
-
-  function closeChat() {
-    widget.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
-    panel.setAttribute('aria-hidden', 'true');
-  }
-
-  // expose for keyboard handler above
-  window.closeChatIfOpen = closeChat;
-
-  trigger.addEventListener('click', () => widget.classList.contains('open') ? closeChat() : openChat());
-  minBtn?.addEventListener('click', closeChat);
-
-  // Close on outside click
-  document.addEventListener('click', e => {
-    if (widget.classList.contains('open') && !widget.contains(e.target)) closeChat();
-  });
-
-  // ── Welcome ──
-  function welcome() {
-    const h = new Date().getHours();
-    const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-    addBotMsg(`${g}! 👋 I'm the **FEMIX AI** assistant.\n\nI can help with service info, pricing, bookings, or connect you directly with our team. What do you need?`);
-  }
-
-  // ── Helpers ──
-  function ts() {
-    const n = new Date();
-    return `${n.getHours() % 12 || 12}:${String(n.getMinutes()).padStart(2,'0')} ${n.getHours()>=12?'PM':'AM'}`;
-  }
-
-  function fmt(raw) {
-    return raw
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g,'<em>$1</em>')
-      .replace(/\n/g,'<br>');
-  }
-
-  function scrollDown() { requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; }); }
-
-  // ── Add messages ──
-  function addBotMsg(text) {
-    const wrap = document.createElement('div');
-    wrap.className = 'msg bot';
-
-    const av = document.createElement('div');
-    av.className = 'msg-avatar'; av.setAttribute('aria-hidden', 'true');
-    av.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-
-    const col = document.createElement('div'); col.className = 'msg-col';
-    const bub = document.createElement('div'); bub.className = 'msg-bubble';
-    bub.innerHTML = fmt(text);
-    const t = document.createElement('div'); t.className = 'msg-ts'; t.textContent = ts();
-
-    col.append(bub, t);
-    wrap.append(av, col);
-    log.appendChild(wrap);
-    scrollDown();
-    return bub;
-  }
-
-  function addUserMsg(text) {
-    const wrap = document.createElement('div'); wrap.className = 'msg user';
-    const col = document.createElement('div'); col.className = 'msg-col';
-    const bub = document.createElement('div'); bub.className = 'msg-bubble'; bub.innerHTML = fmt(text);
-    const t = document.createElement('div'); t.className = 'msg-ts'; t.textContent = ts();
-    col.append(bub, t); wrap.appendChild(col); log.appendChild(wrap); scrollDown();
-  }
-
-  function showTyping() {
-    const wrap = document.createElement('div'); wrap.className = 'msg bot'; wrap.id = 'chatTyping';
-    const av = document.createElement('div'); av.className = 'msg-avatar';
-    av.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-    const bub = document.createElement('div'); bub.className = 'typing-bubble';
-    bub.innerHTML = '<span></span><span></span><span></span>';
-    wrap.append(av, bub); log.appendChild(wrap); scrollDown();
-  }
-  function hideTyping() { $('#chatTyping')?.remove(); }
-
-  // ── Stream text word-by-word ──
-  async function streamText(text) {
-    const wrap = document.createElement('div'); wrap.className = 'msg bot';
-    const av = document.createElement('div'); av.className = 'msg-avatar';
-    av.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-    const col = document.createElement('div'); col.className = 'msg-col';
-    const bub = document.createElement('div'); bub.className = 'msg-bubble typing-stream';
-    const t = document.createElement('div'); t.className = 'msg-ts'; t.textContent = ts();
-    col.append(bub, t); wrap.append(av, col); log.appendChild(wrap); scrollDown();
-
-    const words = text.split(' ');
-    let built = '';
-    for (const w of words) {
-      built += (built ? ' ' : '') + w;
-      bub.innerHTML = fmt(built);
-      scrollDown();
-      await new Promise(r => setTimeout(r, 22 + Math.random() * 22));
-    }
-    bub.classList.remove('typing-stream');
-  }
-
-  // ── Send ──
-  async function send(text) {
-    if (!text.trim() || busy) return;
-    busy = true;
-    sendBtn.disabled = true;
-    input.value = ''; input.style.height = 'auto';
-    if (chips) chips.style.display = 'none';
-
-    addUserMsg(text);
-    history.push({ role: 'user', content: text });
-
-    await new Promise(r => setTimeout(r, 380));
-    showTyping();
-
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 550,
-          system: SYSTEM,
-          messages: history
-        })
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const d = await res.json();
-      const reply = d.content?.[0]?.text || "Sorry, I couldn't process that. Please call: +234 906 0708 332.";
-
-      history.push({ role: 'assistant', content: reply });
-      if (history.length > 24) history = history.slice(-24);
-
-      hideTyping();
-      await streamText(reply);
-
-    } catch (err) {
-      console.error('Chat:', err);
-      hideTyping();
-      const b = addBotMsg("I'm having trouble connecting. Please:\n📞 **Call: +234 906 0708 332**\n✉️ femixplumbingservices931@gmail.com");
-      b.classList.add('err');
-    } finally {
-      busy = false;
-      sendBtn.disabled = !input.value.trim();
-    }
-  }
-
-  // ── Events ──
-  input?.addEventListener('input', () => {
-    sendBtn.disabled = !input.value.trim();
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
-  });
-
-  input?.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      const t = input.value.trim();
-      if (t) send(t);
-    }
-  });
-
-  sendBtn?.addEventListener('click', () => {
-    const t = input?.value.trim(); if (t) send(t);
-  });
-
-  $$('.chip').forEach(c => c.addEventListener('click', () => { const m = c.dataset.msg; if (m) send(m); }));
-
-  // Auto-open once after 10s
-  if (!sessionStorage.getItem('femix-chat-v3')) {
-    setTimeout(() => {
-      if (!widget.classList.contains('open')) {
-        openChat();
-        sessionStorage.setItem('femix-chat-v3', '1');
-        Toast.info('Hi there! 👋', 'FEMIX AI is ready to help with your plumbing questions.', 5000);
-      }
-    }, 10000);
-  }
-
-})();
