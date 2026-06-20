@@ -418,12 +418,12 @@ body::after {
 ────────────────────────────────────────── */
 .gallery-strip {
   position: relative; width: 100%;
-  padding: 1.4rem 0; overflow: hidden; z-index: 5;
+  padding: 6.6rem 0; overflow: hidden; z-index: 5;
   background: var(--bg-raised); border-bottom: 1px solid var(--glass-border);
 }
 .gallery-strip::before,
 .gallery-strip::after {
-  content: ''; position: absolute; top: 0; bottom: 0;
+  content: ''; position: absolute; top: 10; bottom: 0;
   width: 160px; z-index: 3; pointer-events: none;
 }
 .gallery-strip::before {
