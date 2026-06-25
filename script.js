@@ -70,7 +70,7 @@ const Toast = (function() {
       </div>
       <button class="toast-close" aria-label="Close notification">✕</button>
     `;
-    container.appendChild(el);
+    container?.appendChild(el);
 
     const dismiss = () => {
       el.classList.add('toast-out');
@@ -148,22 +148,20 @@ const Toast = (function() {
 })();
 
 /* ════════════════════════════════════════════════════
-   5. SCROLL PROGRESS (tracks active view scroll)
+   5. SCROLL PROGRESS
 ════════════════════════════════════════════════════ */
 (function progressBar() {
   const fill = $('.scroll-progress-fill');
   if (!fill) return;
   function update() {
-    // Track whichever view is currently scrolling
     const activeView = $('.spa-view--active');
     if (!activeView) return;
-    const el   = activeView.classList.contains('spa-view--home') ? document.documentElement : activeView;
-    const h    = el.scrollHeight - (activeView.classList.contains('spa-view--home') ? innerHeight : activeView.clientHeight);
-    const pos  = activeView.classList.contains('spa-view--home') ? window.scrollY : activeView.scrollTop;
+    const el  = activeView.classList.contains('spa-view--home') ? document.documentElement : activeView;
+    const h   = el.scrollHeight - (activeView.classList.contains('spa-view--home') ? innerHeight : activeView.clientHeight);
+    const pos = activeView.classList.contains('spa-view--home') ? window.scrollY : activeView.scrollTop;
     fill.style.width = h > 0 ? `${(pos / h) * 100}%` : '0%';
   }
   window.addEventListener('scroll', update, { passive: true });
-  // Also listen on page views
   $$('.spa-view--page').forEach(v => v.addEventListener('scroll', update, { passive: true }));
 })();
 
@@ -205,58 +203,47 @@ hamBtn?.addEventListener('click', () =>
 overlay?.addEventListener('click', closeDrawer);
 $('#closeDrawer')?.addEventListener('click', closeDrawer);
 
-/* Drawer accordion */
 function toggleContent(id) {
   $$('.item-content').forEach(c => {
     c.classList.toggle('active', c.id === id ? !c.classList.contains('active') : false);
   });
 }
-// Expose globally (used in onclick attributes)
 window.toggleContent = toggleContent;
 
 /* ════════════════════════════════════════════════════
    8. ★ SPA ROUTER ★
-   - Hash-based: #home #services #about #reviews #contact
-   - Views slide in from right, back = slide out right
-   - body scroll locked when a page-view is active
-   - Scroll position of each view is remembered
 ════════════════════════════════════════════════════ */
 const VIEWS     = ['home', 'services', 'about', 'reviews', 'contact'];
-const scrollPos = {};   // remember scroll per view
+const scrollPos = {};
 let   currentView = 'home';
 
-/* Low-level: swap which view element is visible */
 function showView(id, pushHistory = true) {
   if (!VIEWS.includes(id)) id = 'home';
   if (id === currentView) return;
 
-  const prev    = `view-${currentView}`;
-  const next    = `view-${id}`;
-  const prevEl  = document.getElementById(prev);
-  const nextEl  = document.getElementById(next);
+  const prev   = `view-${currentView}`;
+  const next   = `view-${id}`;
+  const prevEl = document.getElementById(prev);
+  const nextEl = document.getElementById(next);
   if (!prevEl || !nextEl) return;
 
-  // Save scroll position of leaving view
   scrollPos[currentView] = currentView === 'home'
     ? window.scrollY
     : prevEl.scrollTop;
 
   const goingHome = id === 'home';
 
-  /* Animate out */
   prevEl.classList.add(goingHome ? 'spa-view--exit-right' : 'spa-view--exit-left');
   prevEl.addEventListener('animationend', () => {
     prevEl.classList.remove('spa-view--active', 'spa-view--exit-left', 'spa-view--exit-right');
     prevEl.setAttribute('aria-hidden', 'true');
   }, { once: true });
 
-  /* Animate in */
   nextEl.classList.add(goingHome ? 'spa-view--enter-left' : 'spa-view--enter-right');
   nextEl.classList.add('spa-view--active');
   nextEl.setAttribute('aria-hidden', 'false');
   nextEl.addEventListener('animationend', () => {
     nextEl.classList.remove('spa-view--enter-right', 'spa-view--enter-left');
-    // Restore scroll
     if (id === 'home') {
       window.scrollTo({ top: scrollPos['home'] || 0, behavior: 'instant' });
       document.body.style.overflow = '';
@@ -268,31 +255,16 @@ function showView(id, pushHistory = true) {
 
   currentView = id;
 
-  /* Lock/unlock body scroll */
-  if (id !== 'home') {
-    document.body.style.overflow = 'hidden';
-  }
+  if (id !== 'home') document.body.style.overflow = 'hidden';
 
-  /* Update hash without triggering hashchange loop */
   if (pushHistory) {
-    const hash = id === 'home' ? '#home' : `#${id}`;
-    history.pushState({ view: id }, '', hash);
+    history.pushState({ view: id }, '', id === 'home' ? '#home' : `#${id}`);
   }
 
-  /* Update nav active states */
   updateNavActive(id);
 
-  /* Trigger reveal animations on newly shown view */
-  if (id !== 'home') {
-    setTimeout(() => triggerReveals(nextEl), 80);
-  }
-
-  /* Re-init carousel when reviews view shown */
-  if (id === 'reviews') {
-    setTimeout(initCarousel, 120);
-  }
-
-  /* Re-init tab indicator when services view shown */
+  if (id !== 'home') setTimeout(() => triggerReveals(nextEl), 80);
+  if (id === 'reviews') setTimeout(initCarousel, 120);
   if (id === 'services') {
     setTimeout(() => {
       const activeTab = $('.svc-tab.active');
@@ -300,11 +272,9 @@ function showView(id, pushHistory = true) {
     }, 120);
   }
 
-  /* Close drawer if open */
   closeDrawer();
 }
 
-/* Navigate — public API */
 function navigateTo(viewId, tab) {
   showView(viewId);
   if (tab && viewId === 'services') {
@@ -312,12 +282,10 @@ function navigateTo(viewId, tab) {
   }
 }
 
-/* Hash-based routing on load + back/forward */
 function routeFromHash() {
   const hash = location.hash.replace('#', '') || 'home';
   const id   = VIEWS.includes(hash) ? hash : 'home';
   if (id !== currentView) {
-    // Instant swap (no animation) on initial load
     const prevEl = document.getElementById(`view-${currentView}`);
     const nextEl = document.getElementById(`view-${id}`);
     if (prevEl && nextEl) {
@@ -335,33 +303,25 @@ function routeFromHash() {
 }
 
 window.addEventListener('hashchange', () => routeFromHash());
-window.addEventListener('popstate',   e  => {
+window.addEventListener('popstate', e => {
   const id = e.state?.view || 'home';
-  if (id !== currentView) {
-    showView(id, false);
-  }
+  if (id !== currentView) showView(id, false);
 });
 
-/* Update active state on all nav triggers */
 function updateNavActive(id) {
   $$('[data-view]').forEach(el => {
     el.classList.toggle('active', el.dataset.view === id);
   });
-  /* Side dots on home view */
   $$('.sdot').forEach(d => d.classList.toggle('active', d.dataset.target === id));
 }
 
-/* Wire ALL [data-view] elements */
 document.addEventListener('click', e => {
   const trigger = e.target.closest('[data-view]');
   if (!trigger) return;
-
-  // Allow normal links for tel/mailto/external
   if (trigger.tagName === 'A') {
     const href = trigger.getAttribute('href') || '';
     if (!href.startsWith('#') && !href.startsWith('javascript')) return;
   }
-
   e.preventDefault();
   const viewId = trigger.dataset.view;
   const tab    = trigger.dataset.tab;
@@ -387,7 +347,6 @@ function triggerReveals(container) {
   });
 }
 
-/* Home view reveals on scroll */
 const homeRevObs = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {
@@ -427,19 +386,23 @@ function activateTab(name) {
 
 $$('.svc-tab').forEach(tab => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
 
-/* Service CTA → open quote modal with pre-selected service */
+/* ── Service CTA buttons → navigate to booking form
+   and pre-select the matching service in the dropdown ── */
 $$('.panel-cta').forEach(btn => {
   btn.addEventListener('click', () => {
     const svc = btn.dataset.service;
-    openModal('contactModal');
+    navigateTo('contact');
     if (svc) {
-      const sel = $('#mfservice');
-      if (!sel) return;
-      for (const opt of sel.options) {
-        if (opt.text.includes(svc.split('(')[0].trim().replace(/&amp;/g, '&'))) {
-          opt.selected = true; break;
+      setTimeout(() => {
+        const sel = $('#fservice');
+        if (!sel) return;
+        for (const opt of sel.options) {
+          if (opt.text.includes(svc.split('(')[0].trim().replace(/&amp;/g, '&'))) {
+            opt.selected = true;
+            break;
+          }
         }
-      }
+      }, 350); // wait for view to slide in
     }
   });
 });
@@ -485,7 +448,6 @@ function initCarousel() {
   function prev() { goto(current - 1); }
   function resetAuto() { clearInterval(auto); auto = setInterval(next, 5200); }
 
-  // Remove old listeners by replacing buttons
   const newPrev = prevBtn?.cloneNode(true);
   const newNext = nextBtn?.cloneNode(true);
   prevBtn?.parentNode?.replaceChild(newPrev, prevBtn);
@@ -495,7 +457,7 @@ function initCarousel() {
 
   let tx = 0;
   track.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend',   e => {
+  track.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - tx;
     if (Math.abs(dx) > 45) { dx < 0 ? next() : prev(); resetAuto(); }
   });
@@ -513,7 +475,7 @@ function initCarousel() {
 }
 
 /* ════════════════════════════════════════════════════
-   12. 3D TILT CARDS + cursor-tracked glow
+   12. 3D TILT CARDS
 ════════════════════════════════════════════════════ */
 document.addEventListener('mousemove', e => {
   const card = e.target.closest('.tilt-card, .pillar');
@@ -522,7 +484,6 @@ document.addEventListener('mousemove', e => {
   const x = (e.clientX - left) / width  - 0.5;
   const y = (e.clientY - top)  / height - 0.5;
   card.style.transform = `perspective(700px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateZ(6px)`;
-  // Position the light-catch glow at the cursor (used by .pillar::after)
   card.style.setProperty('--mx', `${((e.clientX - left) / width) * 100}%`);
   card.style.setProperty('--my', `${((e.clientY - top) / height) * 100}%`);
 });
@@ -532,14 +493,13 @@ document.addEventListener('mouseleave', e => {
 }, true);
 
 /* ════════════════════════════════════════════════════
-   13. MODAL SYSTEM
+   13. MODAL SYSTEM  (success modal only now)
 ════════════════════════════════════════════════════ */
 function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
-  // Don't lock body if a page-view is already managing overflow
   if (currentView === 'home') document.body.style.overflow = 'hidden';
   setTimeout(() => el.querySelector('input, select, button')?.focus(), 100);
 }
@@ -548,25 +508,24 @@ function closeModal(id) {
   if (!el) return;
   el.classList.remove('open');
   el.setAttribute('aria-hidden', 'true');
-  // Restore body scroll only if no page-view is active
   if (currentView === 'home' && !$$('.modal-overlay.open').length) {
     document.body.style.overflow = '';
   }
 }
 
-$('#heroQuoteBtn')?.addEventListener('click',    () => openModal('contactModal'));
-$('#openContactModal')?.addEventListener('click', () => openModal('contactModal'));
-$('#closeContactModal')?.addEventListener('click',() => closeModal('contactModal'));
-$('#closeSuccessModal')?.addEventListener('click',() => closeModal('successModal'));
+/* Hero / nav "Book" buttons → go to contact view (no modal) */
+$('#heroQuoteBtn')?.addEventListener('click',     () => navigateTo('contact'));
+$('#openContactModal')?.addEventListener('click', () => navigateTo('contact'));
+
+/* Success modal close */
+$('#closeSuccessModal')?.addEventListener('click', () => closeModal('successModal'));
 
 $$('.modal-overlay').forEach(ov => {
   ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    $$('.modal-overlay.open').forEach(m => closeModal(m.id));
-  }
+  if (e.key === 'Escape') $$('.modal-overlay.open').forEach(m => closeModal(m.id));
 });
 
 /* ════════════════════════════════════════════════════
@@ -618,10 +577,9 @@ async function handleForm(form, btn) {
     if (r.ok) {
       form.reset();
       playChime();
-      closeModal('contactModal');
       setTimeout(() => openModal('successModal'), 80);
-      notify('✅ Request Received', 'FEMIX team will contact you shortly.');
-      Toast.success('Sent!', 'We\'ll get back to you within hours.');
+      notify('✅ Booking Received', 'FEMIX team will confirm your slot within 30 minutes.');
+      Toast.success('Booking Confirmed!', 'We\'ll confirm your slot within 30 minutes.');
     } else {
       Toast.error('Send failed', 'Please try again or call us directly.');
     }
@@ -633,8 +591,11 @@ async function handleForm(form, btn) {
   }
 }
 
-$('#contactForm')?.addEventListener('submit',      e => { e.preventDefault(); handleForm(e.target, $('#submitBtn'));      });
-$('#modalContactForm')?.addEventListener('submit', e => { e.preventDefault(); handleForm(e.target, $('#modalSubmitBtn')); });
+/* Only one form now — the main booking form */
+$('#contactForm')?.addEventListener('submit', e => {
+  e.preventDefault();
+  handleForm(e.target, $('#submitBtn'));
+});
 
 /* ════════════════════════════════════════════════════
    16. PWA + BROWSER NOTIFICATIONS
@@ -703,9 +664,8 @@ if (yr) yr.textContent = new Date().getFullYear();
     const hero = $('#hero');
     if (!hero) return;
     const rect = hero.getBoundingClientRect();
-    // Only animate while hero is in view
     if (rect.bottom < 0 || rect.top > innerHeight) return;
-    const offset = rect.top * 0.12;   // subtle drift factor
+    const offset = rect.top * 0.12;
     img.style.transform = `translateY(${offset}px) scale(1.06)`;
   }
 
@@ -717,12 +677,7 @@ if (yr) yr.textContent = new Date().getFullYear();
    19. INIT ON LOAD
 ════════════════════════════════════════════════════ */
 window.addEventListener('load', () => {
-  // Route from URL hash on first load
   routeFromHash();
-
-  // Init tab indicator
   setTimeout(() => positionIndicator($('.svc-tab.active')), 200);
-
-  // If landing on reviews, init carousel
   if (location.hash === '#reviews') setTimeout(initCarousel, 200);
 });
