@@ -2114,7 +2114,7 @@ body {
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: transform var(--t2), box-shadow var(--t2), border-color var(--t2);
-  border: 1px solid var(--glass-border);
+  border: 2px solid var(--glass-border);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -2197,7 +2197,7 @@ body {
   .spa-qcard {
     padding: 1.1rem 1rem;
   }
-  .spa-qcard-icon { font-size: 1.4rem; }
+  .spa-qcard-icon { font-size: 2.1rem; }
   .spa-view-header {
     padding: 0.75rem 1rem 0.25rem;
   }
