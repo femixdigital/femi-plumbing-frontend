@@ -184,6 +184,19 @@ body::after {
   pointer-events: none; z-index: 0; opacity: 0.12;
 }
 
+
+/* ── Disable Long Press Menu ── */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* ──────────────────────────────────────────
    UTILITIES
 ────────────────────────────────────────── */
