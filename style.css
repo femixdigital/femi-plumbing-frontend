@@ -362,7 +362,7 @@ body::after {
 }
 .loader-wordmark span { color: var(--gold-lt); }
 .loader-tagline {
-  font-family: 'Space Mono', monospace; font-size: 0.52rem;
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);
 }
 .loader-bar-wrap {
