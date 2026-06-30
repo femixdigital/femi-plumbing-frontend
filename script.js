@@ -4,6 +4,9 @@
    ════════════════════════════════════════════════════ */
 'use strict';
 
+/* ─── BACKEND URL ─── */
+const BACKEND_URL = 'https://femix-plumbing-backend.onrender.com/book';
+
 /* ─── DOM HELPERS ─── */
 const $  = (s, ctx = document) => ctx.querySelector(s);
 const $$ = (s, ctx = document) => [...ctx.querySelectorAll(s)];
@@ -386,8 +389,7 @@ function activateTab(name) {
 
 $$('.svc-tab').forEach(tab => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
 
-/* ── Service CTA buttons → navigate to booking form
-   and pre-select the matching service in the dropdown ── */
+/* ── Service CTA buttons → navigate to booking form ── */
 $$('.panel-cta').forEach(btn => {
   btn.addEventListener('click', () => {
     const svc = btn.dataset.service;
@@ -402,7 +404,7 @@ $$('.panel-cta').forEach(btn => {
             break;
           }
         }
-      }, 350); // wait for view to slide in
+      }, 350);
     }
   });
 });
@@ -493,7 +495,7 @@ document.addEventListener('mouseleave', e => {
 }, true);
 
 /* ════════════════════════════════════════════════════
-   13. MODAL SYSTEM  (success modal only now)
+   13. MODAL SYSTEM
 ════════════════════════════════════════════════════ */
 function openModal(id) {
   const el = document.getElementById(id);
@@ -501,7 +503,7 @@ function openModal(id) {
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
   if (currentView === 'home') document.body.style.overflow = 'hidden';
-  setTimeout(() => el.querySelector('input, select, button')?.focus(), 100);
+  setTimeout(() => el.querySelector('button')?.focus(), 100);
 }
 function closeModal(id) {
   const el = document.getElementById(id);
@@ -513,11 +515,11 @@ function closeModal(id) {
   }
 }
 
-/* Hero / nav "Book" buttons → go to contact view (no modal) */
+/* Hero / nav "Book" buttons → go to contact view */
 $('#heroQuoteBtn')?.addEventListener('click',     () => navigateTo('contact'));
 $('#openContactModal')?.addEventListener('click', () => navigateTo('contact'));
 
-/* Success modal close */
+/* Success modal close — use closeModal() everywhere for consistency */
 $('#closeSuccessModal')?.addEventListener('click', () => closeModal('successModal'));
 
 $$('.modal-overlay').forEach(ov => {
@@ -530,68 +532,158 @@ document.addEventListener('keydown', e => {
 
 /* ════════════════════════════════════════════════════
    14. SUCCESS CHIME
+   ★ FIX: AudioContext is created lazily inside a user-
+     gesture handler, so it is never blocked by browsers.
+     We resume() if suspended (autoplay policy) then play.
 ════════════════════════════════════════════════════ */
+let _audioCtx = null;
+
+function getAudioCtx() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+}
+
 function playChime() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [523.25, 659.25, 783.99].forEach((f, i) => {
-      const osc = ctx.createOscillator(), g = ctx.createGain();
-      osc.connect(g); g.connect(ctx.destination);
-      osc.type = 'sine'; osc.frequency.value = f;
-      g.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
-      g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.18 + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.95);
-      osc.start(ctx.currentTime + i * 0.18);
-      osc.stop(ctx.currentTime + i * 0.18 + 1);
-    });
-  } catch { /* silent */ }
+    const ctx = getAudioCtx();
+
+    // Resume if browser suspended it (common after page load)
+    const doPlay = () => {
+      // Three rising tones: C5 → E5 → G5  (triumphant major chord arpeggio)
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((freq, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        // Add a slight reverb feel with a second detuned oscillator
+        const osc2  = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+
+        osc.connect(gain);   gain.connect(ctx.destination);
+        osc2.connect(gain2); gain2.connect(ctx.destination);
+
+        osc.type  = 'sine';
+        osc2.type = 'sine';
+        osc.frequency.value  = freq;
+        osc2.frequency.value = freq * 1.003;   // tiny detune for warmth
+
+        const t0 = ctx.currentTime + i * 0.20;
+
+        // Main tone
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(0.22, t0 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
+
+        // Detuned layer (quieter)
+        gain2.gain.setValueAtTime(0, t0);
+        gain2.gain.linearRampToValueAtTime(0.08, t0 + 0.04);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
+
+        osc.start(t0);  osc.stop(t0 + 1.2);
+        osc2.start(t0); osc2.stop(t0 + 1.2);
+      });
+    };
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(doPlay).catch(() => {});
+    } else {
+      doPlay();
+    }
+  } catch {
+    /* Audio not supported — silent fail */
+  }
 }
 
 /* ════════════════════════════════════════════════════
    15. FORM SUBMIT
+   ★ FIX: success path now uses openModal() (not direct
+     aria-hidden toggle) so CSS .open class is applied
+     and the modal actually becomes visible.
 ════════════════════════════════════════════════════ */
 async function handleForm(form, btn) {
+  // ── Client-side validation ──
   const invalids = [...form.querySelectorAll(':invalid')];
   if (invalids.length) {
     invalids.forEach(f => {
       f.style.borderColor = 'rgba(240,64,64,0.7)';
       f.style.boxShadow   = '0 0 0 3px rgba(240,64,64,0.1)';
-      f.addEventListener('input', () => { f.style.borderColor = ''; f.style.boxShadow = ''; }, { once: true });
+      f.addEventListener('input', () => {
+        f.style.borderColor = '';
+        f.style.boxShadow   = '';
+      }, { once: true });
     });
     invalids[0].focus();
     Toast.error('Incomplete', 'Please fill in all required fields.');
     return;
   }
 
+  // ── Loading state ──
   const orig = btn.innerHTML;
   btn.innerHTML = '<span style="opacity:.65">Sending…</span>';
-  btn.disabled = true;
+  btn.disabled  = true;
 
   try {
-    const r = await fetch(form.action, {
-      method: 'POST',
-      body: new FormData(form),
-      headers: { Accept: 'application/json' }
+    const fd = new FormData(form);
+    const payload = {
+      name:    fd.get('name')           || '',
+      phone:   fd.get('phone')          || '',
+      address: fd.get('address')        || '',
+      issue:   fd.get('service')        || '',
+      date:    fd.get('preferred_date') || '',
+      time:    fd.get('preferred_time') || '',
+      email:   fd.get('email')          || '',
+      message: fd.get('message')        || ''
+    };
+
+    // ── POST to backend ──
+    const r = await fetch(BACKEND_URL, {
+      method:  'POST',
+      body:    JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept':       'application/json'
+      }
     });
 
     if (r.ok) {
+      // ★ Reset form before showing success UI
       form.reset();
+
+      // ★ Play chime (AudioContext already warmed by earlier user interaction)
       playChime();
+
+      // ★ Open success modal via openModal() so .open class is added correctly
       setTimeout(() => openModal('successModal'), 80);
+
+      // ★ Toast
+      Toast.success('Booking Confirmed!', "We'll confirm your slot within 30 minutes.");
+
+      // ★ Browser push notification (if granted)
       notify('✅ Booking Received', 'FEMIX team will confirm your slot within 30 minutes.');
-      Toast.success('Booking Confirmed!', 'We\'ll confirm your slot within 30 minutes.');
+
     } else {
-      Toast.error('Send failed', 'Please try again or call us directly.');
+      // Server returned non-2xx
+      let serverMsg = 'Please try again or call us directly.';
+      try {
+        const errBody = await r.json();
+        if (errBody?.message) serverMsg = errBody.message;
+      } catch { /* ignore parse error */ }
+      Toast.error('Send failed', serverMsg);
     }
-  } catch {
+
+  } catch (networkErr) {
+    // Likely cold-start timeout or no connection
+    console.error('Fetch error:', networkErr);
     Toast.error('Network error', 'Please check your connection and try again.');
   } finally {
     btn.innerHTML = orig;
-    btn.disabled = false;
+    btn.disabled  = false;
   }
 }
 
-/* Only one form now — the main booking form */
+/* ── Attach submit handler to the one booking form ── */
 $('#contactForm')?.addEventListener('submit', e => {
   e.preventDefault();
   handleForm(e.target, $('#submitBtn'));

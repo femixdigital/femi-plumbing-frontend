@@ -49,7 +49,7 @@
       </div>
     </div>
     <div class="loader-wordmark">FE<span>MIX</span> PLUM<span>BING</span> SER<span>VICES</span></div>
-    <div class="loader-tagline">Professional Plumbing & Water Solutions· Est. 2019</div>
+    <div class="loader-tagline">Professional Plumbing & Water Solutions · Est. 2019</div>
     <div class="loader-bar-wrap"><div class="loader-bar-fill"></div></div>
   </div>
 </div>
@@ -92,7 +92,6 @@
 <header id="header">
   <div class="nav-bar">
 
-    <!-- Logo → always goes home -->
     <a href="#home" class="logo-wrap" aria-label="FEMIX Plumbing — Home" data-view="home">
       <div class="logo-mark">
         <img src="images/femix-plumbing-logo.webp" alt="" class="logo-img" aria-hidden="true" />
@@ -104,15 +103,13 @@
       </div>
     </a>
 
-    <!-- Desktop nav -->
     <nav class="desk-nav" aria-label="Main navigation">
-      <a href="#home" class="nav-link active" data-view="home" >Home</a>
-      <a href="#services" class="nav-link" data-view="services">Services</a>
-      <a href="#about" class="nav-link" data-view="about">About</a>
-    <a href="#reviews" class="nav-link" data-view="reviews">
-        Reviews</a>
-        
-        <div class="nav-dd" id="workDropdown">
+      <a href="#home"     class="nav-link active" data-view="home">Home</a>
+      <a href="#services" class="nav-link"         data-view="services">Services</a>
+      <a href="#about"    class="nav-link"          data-view="about">About</a>
+      <a href="#reviews"  class="nav-link"          data-view="reviews">Reviews</a>
+
+      <div class="nav-dd" id="workDropdown">
         <button class="nav-dd-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="workMenu">
           Our Work <span class="chevron" aria-hidden="true"></span>
         </button>
@@ -154,7 +151,6 @@
       </button>
     </nav>
 
-    <!-- Status + Hamburger -->
     <div class="nav-right">
       <div class="status-pill" aria-label="Service status: available">
         <span class="status-dot" aria-hidden="true"></span>
@@ -166,7 +162,6 @@
     </div>
   </div>
 
-  <!-- Ticker -->
   <div class="ticker-bar" aria-hidden="true">
     <div class="ticker-inner">
       <span>Femix Plumbing Services</span><span class="tsep">✦</span>
@@ -203,7 +198,7 @@
           <span class="menu-label">HOME</span>
         </div>
         <div id="home-info" class="item-content">
-          <p>Professional Plumbing & Water Engineering Solutions. Certified • Experienced • Registered. Delivering quality workmanship and reliable service you can trust. Est. since 2019.</p>
+          <p>Professional Plumbing & Water Engineering Solutions. Certified • Experienced • Registered. Est. since 2019.</p>
         </div>
       </div>
       <div class="menu-item" onclick="toggleContent('services-info')">
@@ -257,34 +252,26 @@
         WhatsApp
       </a>
     </div>
-    
-    <!-- Business flyer — sits at the bottom of the drawer, scrolls with it -->
     <div class="mob-drawer-flyer">
-      <img src="images/femix-plumbing-flyer.webp" alt="FEMIX
-      Plumbing Services — promotional flyer" loading="lazy"/>
+      <img src="images/femix-plumbing-flyer.webp" alt="FEMIX Plumbing Services — promotional flyer" loading="lazy"/>
     </div>
   </div>
 </div>
 
-
-  </div>
-</div>
 <div class="mob-overlay" id="mobOverlay" aria-hidden="true"></div>
 
 
 <!-- ══════════════════════════════════════
-     HOME VIEW — the base scrollable shell
-     Always visible, no overlay needed
+     HOME VIEW
 ════════════════════════════════════════ -->
 <div id="view-home" class="spa-view spa-view--home spa-view--active" data-view-id="home" role="main">
 
-  <!-- Side dots — only on home -->
   <nav class="side-dots" aria-label="Page sections" id="sideDots">
-    <button class="sdot active" data-target="home" aria-label="Home section"></button>
-    <button class="sdot" data-target="services" aria-label="Services"></button>
-    <button class="sdot" data-target="about" aria-label="About"></button>
-    <button class="sdot" data-target="reviews" aria-label="Reviews"></button>
-    <button class="sdot" data-target="contact" aria-label="Contact"></button>
+    <button class="sdot active" data-target="home"     aria-label="Home section"></button>
+    <button class="sdot"        data-target="services" aria-label="Services"></button>
+    <button class="sdot"        data-target="about"    aria-label="About"></button>
+    <button class="sdot"        data-target="reviews"  aria-label="Reviews"></button>
+    <button class="sdot"        data-target="contact"  aria-label="Contact"></button>
   </nav>
 
   <!-- ══ HERO ══ -->
@@ -293,11 +280,7 @@
     <div class="orb orb-a" aria-hidden="true"></div>
     <div class="orb orb-b" aria-hidden="true"></div>
     <div class="orb orb-c" aria-hidden="true"></div>
-    
 
-    <!-- ── HERO BANNER — sliding/curtain reveal effect ──
-         Drop your business photo at: images/hero-banner.webp
-         Recommended size: 1920x1080px (or larger), landscape -->
     <div class="hero-banner" aria-hidden="true">
       <div class="hero-banner-curtain hero-banner-curtain--left"></div>
       <div class="hero-banner-curtain hero-banner-curtain--right"></div>
@@ -328,7 +311,6 @@
         <span class="badge-pulse" aria-hidden="true"></span>
         <strong>Licensed &amp; Certified</strong> · Est. 2019
       </div>
-
       <h1 class="hero-h1 reveal-fade d1">
         <span class="h1-word">Plumbing</span>
         <span class="h1-word h1-accent">Expert</span>
@@ -364,39 +346,34 @@
     </div>
   </section>
 
-  <!-- ── HOME: Quick-nav cards (replaces scroll for other sections) ── -->
+  <!-- ── HOME: Quick-nav cards ── -->
   <section class="section spa-quicknav-section">
     <div class="container">
       <div class="spa-quicknav-grid">
-
         <button class="spa-qcard glass" data-view="services" aria-label="Go to Services">
           <span class="spa-qcard-icon">🔧</span>
           <span class="spa-qcard-title">Services</span>
           <span class="spa-qcard-sub">Residential · Commercial · Emergency</span>
           <span class="spa-qcard-arrow">→</span>
         </button>
-
         <button class="spa-qcard glass" data-view="about" aria-label="Go to About">
           <span class="spa-qcard-icon">🏅</span>
           <span class="spa-qcard-title">About Us</span>
           <span class="spa-qcard-sub">Our story &amp; craftsmanship</span>
           <span class="spa-qcard-arrow">→</span>
         </button>
-
         <button class="spa-qcard glass" data-view="reviews" aria-label="Go to Reviews">
           <span class="spa-qcard-icon">⭐</span>
           <span class="spa-qcard-title">Reviews</span>
           <span class="spa-qcard-sub">What clients say about us</span>
           <span class="spa-qcard-arrow">→</span>
         </button>
-
         <button class="spa-qcard glass" data-view="contact" aria-label="Go to Contact">
           <span class="spa-qcard-icon">💬</span>
           <span class="spa-qcard-title">Contact</span>
           <span class="spa-qcard-sub">Free quotes &amp; consultations</span>
           <span class="spa-qcard-arrow">→</span>
         </button>
-
       </div>
     </div>
   </section>
@@ -406,27 +383,25 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-brand">
-         <div class="footer-wordmark">FE<em>MIX</em> PLUM<em>BING</em> SER<em>VICES</em></div>
-          <p class="footer-tagline">Professional Plumbing & Water Engineering Solutions·Est. 2019</p>
+          <div class="footer-wordmark">FE<em>MIX</em> PLUM<em>BING</em> SER<em>VICES</em></div>
+          <p class="footer-tagline">Professional Plumbing & Water Engineering Solutions · Est. 2019</p>
           <div class="footer-badges">
             <span class="fbadge">Certified</span>
             <span class="fbadge">Experienced</span>
             <span class="fbadge">Registered</span>
           </div>
         </div>
-        
         <nav class="footer-links" aria-label="Footer navigation">
-          <a href="#about" data-view="about">About</a>
+          <a href="#about"    data-view="about">About</a>
           <a href="#services" data-view="services">Services</a>
-          <a href="#reviews" data-view="reviews" >Reviews</a>
-          <a href="#contact"  data-view="contact" >Contact</>
+          <a href="#reviews"  data-view="reviews">Reviews</a>
+          <a href="#contact"  data-view="contact">Contact</a>
         </nav>
-        
         <address class="footer-contact">
-           <span>📍 Ile Ife, Osun State, Nigeria</span>
+          <span>📍 Ile Ife, Osun State, Nigeria</span>
           <a href="tel:+2349060708332">📞 +234 906 0708 332</a>
           <a href="mailto:femixplumbingservices931@gmail.com">✉️ femixplumbingservices931@gmail.com</a>
-          <a href="https://femixplumbing.name.ng" target="-blank">🌐 femixplumbing.name.ng</a>
+          <a href="https://femixplumbing.name.ng" target="_blank">🌐 femixplumbing.name.ng</a>
           <span>🏢 CAC Registration: BN–9518216</span>
           <span>🕐 Mon–Sat · 7am–7pm</span>
         </address>
@@ -436,7 +411,7 @@
       </div>
     </div>
   </footer>
-  
+
 </div><!-- /view-home -->
 
 
@@ -459,7 +434,7 @@
         <header class="sec-head reveal">
           <div class="sec-eyebrow">What We Do</div>
           <h2 class="sec-h2">Professional Services<br><span class="g-gold">Crafted with <strong>Precision</strong></span></h2>
-          <p class="sec-lead"><strong>combining technincal expertise</strong> with proven wormanship, <strong>we design, Install, maintain, and repair plumbing systems</strong> that meets the highest standards of <strong>safety, reliability, and efficiency.</strong></p>
+          <p class="sec-lead"><strong>Combining technical expertise</strong> with proven workmanship, <strong>we design, install, maintain, and repair plumbing systems</strong> that meet the highest standards of <strong>safety, reliability, and efficiency.</strong></p>
         </header>
 
         <div class="svc-tabs" role="tablist" aria-label="Service categories" id="svcTabList">
@@ -480,8 +455,6 @@
                 <p>Complete plumbing care for your home — from quick fixes to full system installs, by certified professionals.</p>
                 <button class="panel-cta" data-service="Residential Plumbing Solution">Book a Service →</button>
               </div>
-              
-              
               <ul class="panel-list">
                 <li>Leak detection &amp; pipe repairs</li>
                 <li>Toilet, sink, tap &amp; shower installation</li>
@@ -591,7 +564,7 @@
       </div>
     </section>
   </div>
-</div>
+</div><!-- /view-services -->
 
 
 <!-- ══════════════════════════════════════
@@ -649,7 +622,7 @@
       </div>
     </section>
   </div>
-</div>
+</div><!-- /view-about -->
 
 
 <!-- ══════════════════════════════════════
@@ -735,12 +708,17 @@
       </div>
     </section>
   </div>
-</div>
+</div><!-- /view-reviews -->
+
 
 <!-- ══════════════════════════════════════
-     BOOKING  FORM
+     CONTACT / BOOKING FORM VIEW
+     ★ FIX: aria-hidden="true" (was "false")
+       The SPA router controls visibility;
+       hardcoding false made this view render
+       on top of home on initial load.
 ════════════════════════════════════════ -->
-<div id="view-contact" class="spa-view spa-view--page" data-view-id="contact" role="main" aria-hidden="false">
+<div id="view-contact" class="spa-view spa-view--page" data-view-id="contact" role="main" aria-hidden="true">
   <div class="spa-view-inner">
 
     <div class="spa-view-header">
@@ -779,24 +757,41 @@
               </div>
             </div>
           </div>
+
           <div class="contact-form-wrap reveal-right">
             <div class="form-shell glass">
               <div class="form-shell-head">
                 <span class="form-shell-title">Service Dispatch Request</span>
                 <span class="form-shell-badge">Free Booking</span>
               </div>
-              <form id="contactForm" action="https://formspree.io/f/xwvwanpg" method="POST" accept-charset="UTF-8" novalidate>
-                <!-- Formspree config -->
-                <input type="hidden" name="_subject" value="New Service Booking — FEMIX Plumbing" />
-                <input type="hidden" name="_replyto" id="freplyto" value="" />
+              <!-- novalidate: JS handles all validation -->
+              <form id="contactForm" novalidate>
+                <input type="hidden" name="_subject"  value="New Service Booking — FEMIX Plumbing" />
+                <input type="hidden" name="_replyto"  id="freplyto" value="" />
                 <input type="hidden" name="_language" value="en" />
 
                 <div class="form-row">
-                  <div class="field"><label for="fname">Full Name</label><input id="fname" name="name" type="text" placeholder="Your full name" autocomplete="name" required /></div>
-                  <div class="field"><label for="femail">Email</label><input id="femail" name="email" type="email" placeholder="you@email.com" autocomplete="email" oninput="document.getElementById('freplyto').value=this.value" required /></div>
+                  <div class="field">
+                    <label for="fname">Full Name</label>
+                    <input id="fname" name="name" type="text" placeholder="Your full name" autocomplete="name" required />
+                  </div>
+                  <div class="field">
+                    <label for="femail">Email</label>
+                    <input id="femail" name="email" type="email" placeholder="you@email.com" autocomplete="email"
+                           oninput="document.getElementById('freplyto').value=this.value" required />
+                  </div>
                 </div>
-                <div class="field"><label for="fphone">Phone Number</label><input id="fphone" name="phone" type="tel" placeholder="+234 000 000 0000" autocomplete="tel" required /></div>
-                <div class="field"><label for="faddress">Site Address</label><input id="faddress" name="address" type="text" placeholder="Street, area, Ile Ife — or nearest landmark" autocomplete="street-address" /></div>
+
+                <div class="field">
+                  <label for="fphone">Phone Number</label>
+                  <input id="fphone" name="phone" type="tel" placeholder="+234 000 000 0000" autocomplete="tel" required />
+                </div>
+
+                <div class="field">
+                  <label for="faddress">Site Address</label>
+                  <input id="faddress" name="address" type="text" placeholder="Street, area, Ile Ife — or nearest landmark" autocomplete="street-address" />
+                </div>
+
                 <div class="field">
                   <label for="fservice">Service Required</label>
                   <select id="fservice" name="service" required>
@@ -818,27 +813,36 @@
                     </optgroup>
                   </select>
                 </div>
-                <!-- DATE & TIME -->
+
                 <div class="form-row">
                   <div class="field">
                     <label for="fdate">Preferred Date</label>
-                    <input id="fdate" name="preferred_date" type="date" min="2026-06-24" required />
+                    <input id="fdate" name="preferred_date" type="date" min="2026-06-29" required />
                   </div>
                   <div class="field">
                     <label for="ftime">Preferred Time</label>
                     <input id="ftime" name="preferred_time" type="time" min="07:00" max="19:00" required />
                   </div>
                 </div>
-                <div class="field"><label for="fmsg">Message</label><textarea id="fmsg" name="Provide a detailed description of your plumbing issue or project, including the affected area, duration, and any previous repair attempts." required></textarea></div>
+
+                <div class="field">
+                  <label for="fmsg">Message</label>
+                  <textarea id="fmsg" name="message" placeholder="Describe your plumbing issue or project in detail — affected area, duration, any previous repair attempts." required></textarea>
+                </div>
+
                 <button type="submit" class="btn-primary btn-block" id="submitBtn">
                   <span>Confirm &amp; Schedule Dispatch</span>
                   <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
+
                 <div class="or-divider"><span>or reach us directly</span></div>
-                <a href="https://wa.me/2349060708332?text=Hello%20Femix%20Plumbing%20Service%20I%20would%20like%20to%20book%20a%20certified%20artisan%20for%20a%20professional%20site%20inspection." target="_blank" rel="noopener noreferrer" class="wa-btn">
+
+                <a href="https://wa.me/2349060708332?text=Hello%20Femix%20Plumbing%20Service%20I%20would%20like%20to%20book%20a%20certified%20artisan%20for%20a%20professional%20site%20inspection."
+                   target="_blank" rel="noopener noreferrer" class="wa-btn">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   Chat on WhatsApp
                 </a>
+
                 <p class="form-privacy">🔒 Your details are secure &amp; strictly confidential.</p>
               </form>
             </div>
@@ -850,22 +854,33 @@
 </div><!-- /view-contact -->
 
 
-<!-- ─── SUCCESS MODAL ─── -->
-<div class="modal-overlay" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successTitle" aria-hidden="true" onclick="if(event.target===this){this.setAttribute('aria-hidden','true');}">
+<!-- ─── SUCCESS MODAL
+     ★ FIX: all close paths call closeModal() via JS,
+       not inline aria-hidden toggles, so .open class
+       is always properly removed.
+─── -->
+<div class="modal-overlay" id="successModal"
+     role="dialog" aria-modal="true"
+     aria-labelledby="successTitle"
+     aria-hidden="true">
   <div class="modal-card modal-card-sm glass">
-    <button class="modal-x" id="closeSuccessModal" aria-label="Close" onclick="document.getElementById('successModal').setAttribute('aria-hidden','true')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    <button class="modal-x" id="closeSuccessModal" aria-label="Close success modal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
     </button>
     <div class="success-ring" aria-hidden="true">✓</div>
     <h3 id="successTitle">Booking Confirmed!</h3>
     <p>Thank you! The FEMIX team will review your booking and <strong>confirm your slot within 30 minutes</strong>.</p>
-    <button class="btn-primary" onclick="document.getElementById('successModal').setAttribute('aria-hidden','true')">Done</button>
+    <button class="btn-primary" id="successDoneBtn">Done</button>
   </div>
 </div>
 
 <!-- ─── FAB CLUSTER ─── -->
 <div class="fab-cluster" aria-label="Quick contact actions">
-  <a href="https://wa.me/2349060708332?text=Hello%20Femix%20Plumbing!%20I%20need%20a%20service" target="_blank" rel="noopener noreferrer" class="fab fab-wa" aria-label="Chat on WhatsApp" title="WhatsApp">
+  <a href="https://wa.me/2349060708332?text=Hello%20Femix%20Plumbing!%20I%20need%20a%20service"
+     target="_blank" rel="noopener noreferrer"
+     class="fab fab-wa" aria-label="Chat on WhatsApp" title="WhatsApp">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>
   <a href="tel:+2349060708332" class="fab fab-call" aria-label="Call us now" title="Call Now">
@@ -882,4 +897,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
