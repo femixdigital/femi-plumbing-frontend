@@ -61,8 +61,24 @@ window.addEventListener('load', () => {
 const Toast = (function() {
   const container = $('#toastContainer');
   const ICONS = { success: '✓', error: '⚠', info: 'ℹ', warning: '⚡' };
+  const activeToasts = {}; // key -> element, so we can update/replace in place
 
-  function show(title, msg, type = 'info', ms = 4200) {
+  function show(title, msg, type = 'info', ms = 4200, key = null) {
+    // If a keyed toast already exists (e.g. the "waking up server" notice),
+    // update it in place instead of stacking duplicates.
+    if (key && activeToasts[key]) {
+      const el = activeToasts[key];
+      el.className = `toast ${type}`;
+      el.querySelector('.toast-icon').textContent = ICONS[type] || '📢';
+      const titleEl = el.querySelector('.toast-title');
+      const msgEl   = el.querySelector('.toast-msg');
+      if (titleEl) titleEl.textContent = title || '';
+      if (msgEl)   msgEl.textContent   = msg || '';
+      clearTimeout(el._dismissTimer);
+      if (ms > 0) el._dismissTimer = setTimeout(() => dismiss(el, key), ms);
+      return el;
+    }
+
     const el = document.createElement('div');
     el.className = `toast ${type}`;
     el.innerHTML = `
@@ -74,20 +90,32 @@ const Toast = (function() {
       <button class="toast-close" aria-label="Close notification">✕</button>
     `;
     container?.appendChild(el);
+    if (key) activeToasts[key] = el;
 
-    const dismiss = () => {
-      el.classList.add('toast-out');
-      el.addEventListener('animationend', () => el.remove(), { once: true });
-    };
-    el.querySelector('.toast-close').addEventListener('click', dismiss);
-    setTimeout(dismiss, ms);
+    function dismiss(node, k) {
+      node.classList.add('toast-out');
+      node.addEventListener('animationend', () => {
+        node.remove();
+        if (k && activeToasts[k] === node) delete activeToasts[k];
+      }, { once: true });
+    }
+
+    el.querySelector('.toast-close').addEventListener('click', () => dismiss(el, key));
+    if (ms > 0) el._dismissTimer = setTimeout(() => dismiss(el, key), ms);
+    return el;
   }
 
   return {
     success: (t, m, d) => show(t, m, 'success', d),
     error:   (t, m, d) => show(t, m, 'error',   d),
-    info:    (t, m, d) => show(t, m, 'info',     d),
-    warn:    (t, m, d) => show(t, m, 'warning',  d),
+    info:    (t, m, d, key) => show(t, m, 'info',     d ?? 4200, key),
+    warn:    (t, m, d, key) => show(t, m, 'warning',  d ?? 4200, key),
+    dismissKey: (key) => {
+      const el = activeToasts[key];
+      if (!el) return;
+      el.classList.add('toast-out');
+      el.addEventListener('animationend', () => { el.remove(); delete activeToasts[key]; }, { once: true });
+    }
   };
 })();
 
@@ -532,9 +560,6 @@ document.addEventListener('keydown', e => {
 
 /* ════════════════════════════════════════════════════
    14. SUCCESS CHIME
-   ★ FIX: AudioContext is created lazily inside a user-
-     gesture handler, so it is never blocked by browsers.
-     We resume() if suspended (autoplay policy) then play.
 ════════════════════════════════════════════════════ */
 let _audioCtx = null;
 
@@ -549,15 +574,12 @@ function playChime() {
   try {
     const ctx = getAudioCtx();
 
-    // Resume if browser suspended it (common after page load)
     const doPlay = () => {
-      // Three rising tones: C5 → E5 → G5  (triumphant major chord arpeggio)
       const notes = [523.25, 659.25, 783.99];
       notes.forEach((freq, i) => {
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        // Add a slight reverb feel with a second detuned oscillator
         const osc2  = ctx.createOscillator();
         const gain2 = ctx.createGain();
 
@@ -567,16 +589,14 @@ function playChime() {
         osc.type  = 'sine';
         osc2.type = 'sine';
         osc.frequency.value  = freq;
-        osc2.frequency.value = freq * 1.003;   // tiny detune for warmth
+        osc2.frequency.value = freq * 1.003;
 
         const t0 = ctx.currentTime + i * 0.20;
 
-        // Main tone
         gain.gain.setValueAtTime(0, t0);
         gain.gain.linearRampToValueAtTime(0.22, t0 + 0.04);
         gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
 
-        // Detuned layer (quieter)
         gain2.gain.setValueAtTime(0, t0);
         gain2.gain.linearRampToValueAtTime(0.08, t0 + 0.04);
         gain2.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
@@ -597,10 +617,51 @@ function playChime() {
 }
 
 /* ════════════════════════════════════════════════════
-   15. FORM SUBMIT
-   ★ FIX: success path now uses openModal() (not direct
-     aria-hidden toggle) so CSS .open class is applied
-     and the modal actually becomes visible.
+   15. FIELD VALIDATION CHECKMARKS
+   Live green tick indicator for Name / Email / Phone /
+   Site Address on the booking form. Purely visual — the
+   native `required` + type=email/tel attributes plus the
+   :invalid check in handleForm() still gate submission.
+════════════════════════════════════════════════════ */
+(function fieldCheckmarks() {
+  const RULES = {
+    fname:    v => v.trim().length >= 2,
+    femail:   v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+    fphone:   v => v.replace(/[^\d]/g, '').length >= 10,
+    faddress: v => v.trim().length >= 5
+  };
+
+  Object.keys(RULES).forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const wrap  = input.closest('.field-input-wrap');
+    const check = wrap?.querySelector('.field-check');
+    if (!wrap || !check) return;
+
+    const evaluate = () => {
+      const ok = RULES[id](input.value);
+      input.classList.toggle('field-valid', ok);
+      check.classList.toggle('show', ok);
+    };
+
+    input.addEventListener('input', evaluate);
+    input.addEventListener('blur', evaluate);
+    evaluate(); // in case of autofill on load
+  });
+
+  // Autofill (Chrome) sometimes populates fields without firing 'input'.
+  // A short poll right after load catches that case for free.
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      Object.keys(RULES).forEach(id => {
+        document.getElementById(id)?.dispatchEvent(new Event('input'));
+      });
+    }, 600);
+  });
+})();
+
+/* ════════════════════════════════════════════════════
+   16. FORM SUBMIT
 ════════════════════════════════════════════════════ */
 async function handleForm(form, btn) {
   // ── Client-side validation ──
@@ -623,6 +684,19 @@ async function handleForm(form, btn) {
   const orig = btn.innerHTML;
   btn.innerHTML = '<span style="opacity:.65">Sending…</span>';
   btn.disabled  = true;
+
+  // Render's free tier can spin down when idle, so a cold-start request
+  // can take up to ~50s. Reassure the user instead of leaving the button
+  // looking frozen — first at 4s (likely cold start), then again at 15s.
+  const slowTimer1 = setTimeout(() => {
+    btn.innerHTML = '<span style="opacity:.65">Waking up server…</span>';
+    Toast.info('Just a moment', 'Our server is starting up — this can take up to a minute on the first request.', 9000, 'coldstart');
+  }, 4000);
+
+  const slowTimer2 = setTimeout(() => {
+    btn.innerHTML = '<span style="opacity:.65">Almost there…</span>';
+    Toast.info('Still working', 'Thanks for your patience — finishing up your booking now.', 9000, 'coldstart');
+  }, 16000);
 
   try {
     const fd = new FormData(form);
@@ -647,9 +721,17 @@ async function handleForm(form, btn) {
       }
     });
 
+    clearTimeout(slowTimer1);
+    clearTimeout(slowTimer2);
+    Toast.dismissKey('coldstart');
+
     if (r.ok) {
       // ★ Reset form before showing success UI
       form.reset();
+
+      // Reset checkmark state since the fields are now empty
+      $$('.field-check.show').forEach(c => c.classList.remove('show'));
+      $$('.field-input-wrap input.field-valid').forEach(i => i.classList.remove('field-valid'));
 
       // ★ Play chime (AudioContext already warmed by earlier user interaction)
       playChime();
@@ -675,6 +757,9 @@ async function handleForm(form, btn) {
 
   } catch (networkErr) {
     // Likely cold-start timeout or no connection
+    clearTimeout(slowTimer1);
+    clearTimeout(slowTimer2);
+    Toast.dismissKey('coldstart');
     console.error('Fetch error:', networkErr);
     Toast.error('Network error', 'Please check your connection and try again.');
   } finally {
@@ -690,7 +775,7 @@ $('#contactForm')?.addEventListener('submit', e => {
 });
 
 /* ════════════════════════════════════════════════════
-   16. PWA + BROWSER NOTIFICATIONS
+   17. PWA + BROWSER NOTIFICATIONS
 ════════════════════════════════════════════════════ */
 async function notify(title, body) {
   if (!('Notification' in window)) return;
@@ -712,13 +797,13 @@ setTimeout(() => {
 }, 16000);
 
 /* ════════════════════════════════════════════════════
-   17. FOOTER YEAR
+   18. FOOTER YEAR
 ════════════════════════════════════════════════════ */
 const yr = $('#yr');
 if (yr) yr.textContent = new Date().getFullYear();
 
 /* ════════════════════════════════════════════════════
-   18. BUTTON RIPPLE
+   19. BUTTON RIPPLE
 ════════════════════════════════════════════════════ */
 (function ripple() {
   const style = document.createElement('style');
@@ -745,7 +830,7 @@ if (yr) yr.textContent = new Date().getFullYear();
 })();
 
 /* ════════════════════════════════════════════════════
-   18b. HERO BANNER PARALLAX
+   19b. HERO BANNER PARALLAX
 ════════════════════════════════════════════════════ */
 (function heroParallax() {
   const img = $('.hero-banner-img');
@@ -766,7 +851,7 @@ if (yr) yr.textContent = new Date().getFullYear();
 })();
 
 /* ════════════════════════════════════════════════════
-   19. INIT ON LOAD
+   20. INIT ON LOAD
 ════════════════════════════════════════════════════ */
 window.addEventListener('load', () => {
   routeFromHash();
