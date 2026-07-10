@@ -11,18 +11,66 @@ const BACKEND_URL = 'https://femix-plumbing-backend.onrender.com/book';
 const $  = (s, ctx = document) => ctx.querySelector(s);
 const $$ = (s, ctx = document) => [...ctx.querySelectorAll(s)];
 
+/* ─── SHARED FIELD VALIDITY RULES ───
+   Used by BOTH the green-checkmark indicator AND the booking
+   wizard's step-advance gate, so they can never disagree — a
+   field only ever shows green when it would actually let you
+   press Continue, and Continue only ever fails on a field that
+   isn't already showing green. */
+const FIELD_RULES = {
+  // At least two "words" (first + last name), letters only per word
+  // (allows hyphens/apostrophes inside a word, e.g. "Mary-Jane O'Brien").
+  fname: v => /^[A-Za-z]{2,}(?:['-][A-Za-z]{2,})?(?:\s+[A-Za-z]{2,}(?:['-][A-Za-z]{2,})?)+$/.test(v.trim()),
+  // Standard email shape: something@something.tld (tld letters only, 2+ chars).
+  femail: v => /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v.trim()),
+  // Nigerian mobile number: 0XXXXXXXXXX (11 digits) or +234/234XXXXXXXXXX,
+  // where the subscriber number starts with 7, 8, or 9.
+  fphone: v => {
+    const d = v.replace(/[^\d+]/g, '');
+    return /^0[7-9]\d{9}$/.test(d) || /^(?:\+?234)[7-9]\d{9}$/.test(d);
+  },
+  faddress: v => v.trim().length >= 5
+};
+
+document.addEventListener('visibilitychange', () => {
+  document.body.classList.toggle('is-tab-hidden', document.hidden);
+});
+
 /* ════════════════════════════════════════════════════
    1. LOADER
+   Shows just long enough to read as intentional, then
+   gets out of the way — it no longer waits for the full
+   window "load" event (every image/font/script), which is
+   what made the site feel like it was hanging. A safety
+   timeout also guarantees it never blocks the page even on
+   a slow connection.
 ════════════════════════════════════════════════════ */
-window.addEventListener('load', () => {
+(function loaderControl() {
   const loader = $('#loader');
-  setTimeout(() => {
-    loader?.classList.add('out');
-    $$('#view-home .reveal-fade').forEach((el, i) => {
-      setTimeout(() => el.classList.add('visible'), 100 + i * 110);
-    });
-  }, 1350);
-});
+  const MIN_VISIBLE = 320; // long enough to not flicker, short enough to feel instant
+  const MAX_WAIT    = 1600; // hard cap — the loader can never hang the site
+  const start = Date.now();
+  let done = false;
+
+  function hide() {
+    if (done) return;
+    done = true;
+    const wait = Math.max(MIN_VISIBLE - (Date.now() - start), 0);
+    setTimeout(() => {
+      loader?.classList.add('out');
+      $$('#view-home .reveal-fade').forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), 60 + i * 80);
+      });
+    }, wait);
+  }
+
+  if (document.readyState === 'complete') {
+    hide();
+  } else {
+    window.addEventListener('load', hide, { once: true });
+  }
+  setTimeout(hide, MAX_WAIT);
+})();
 
 /* ════════════════════════════════════════════════════
    2. THEME
@@ -143,9 +191,15 @@ const Toast = (function() {
   }
 
   const resize = () => { W = canvas.width = innerWidth; H = canvas.height = innerHeight; };
-  const spawn  = () => { pts = Array.from({ length: Math.min(Math.floor(W * H / 14000), 78) }, () => new P()); };
+  const spawn = () => {
+    const cap = W < 640 ? 34 : W < 1024 ? 56 : 78;
+    pts = Array.from({ length: Math.min(Math.floor(W * H / 14000), cap) }, () => new P());
+  };
+
+  let paused = false;
 
   function draw() {
+    if (paused) return;
     ctx.clearRect(0, 0, W, H);
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
@@ -175,6 +229,13 @@ const Toast = (function() {
   window.addEventListener('resize', () => {
     clearTimeout(deb);
     deb = setTimeout(() => { cancelAnimationFrame(raf); resize(); spawn(); draw(); }, 200);
+  });
+
+  // Free up the main thread when the tab is backgrounded — a background
+  // canvas animation gains the visitor nothing while they're on another tab.
+  document.addEventListener('visibilitychange', () => {
+    paused = document.hidden;
+    if (!paused) { cancelAnimationFrame(raf); draw(); }
   });
 })();
 
@@ -344,6 +405,12 @@ function updateNavActive(id) {
     el.classList.toggle('active', el.dataset.view === id);
   });
   $$('.sdot').forEach(d => d.classList.toggle('active', d.dataset.target === id));
+  // The fixed WhatsApp/Call bubbles can visually sit on top of the booking
+  // wizard's Continue/Back buttons on short screens, silently swallowing
+  // taps meant for the form. There's already a WhatsApp link and phone
+  // number inside the booking flow itself, so hide the floating duplicates
+  // while that view is open.
+  document.body.classList.toggle('is-booking-view', id === 'contact');
 }
 
 document.addEventListener('click', e => {
@@ -417,24 +484,245 @@ function activateTab(name) {
 
 $$('.svc-tab').forEach(tab => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
 
-/* ── Service CTA buttons → navigate to booking form ── */
-$$('.panel-cta').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const svc = btn.dataset.service;
-    navigateTo('contact');
-    if (svc) {
-      setTimeout(() => {
-        const sel = $('#fservice');
-        if (!sel) return;
-        for (const opt of sel.options) {
-          if (opt.text.includes(svc.split('(')[0].trim().replace(/&amp;/g, '&'))) {
-            opt.selected = true;
-            break;
-          }
-        }
-      }, 350);
+/* ════════════════════════════════════════════════════
+   10a. BOOKING WIZARD — 4-step SPA flow inside the card
+   Details → Service → Payment → Confirm. Steps swap via
+   class/hidden toggles only — the booking card itself
+   never moves or resizes the surrounding page, it just
+   swaps its own inner content, so it stays put on screen
+   as you move through it (per-step validation runs on
+   only the currently visible step; native `required`
+   fields on hidden steps are automatically excluded from
+   constraint validation by the browser, so they can never
+   block progress on an earlier step).
+════════════════════════════════════════════════════ */
+const BookingWizard = (function () {
+  const TOTAL = 4;
+  let current = 1;
+
+  const stepEl = n => document.querySelector(`.form-step[data-step="${n}"]`);
+
+  function validateStep(n) {
+    const el = stepEl(n);
+    if (!el) return true;
+    const fields = $$('input, select, textarea', el).filter(f => f.required);
+    const invalids = fields.filter(f => {
+      const rule = FIELD_RULES[f.id];
+      // A field with a stricter shared rule must pass THAT rule (not just
+      // "non-empty") before it counts as valid for continuing.
+      return rule ? !rule(f.value) : !f.checkValidity();
+    });
+    if (invalids.length) {
+      invalids.forEach(f => {
+        // The service select is visually hidden (the custom dropdown trigger
+        // is what people actually see) — show the red-border feedback on
+        // the trigger instead, or nobody would ever see it.
+        const target = f.id === 'fservice' ? ($('#fserviceTrigger') || f) : f;
+        target.style.borderColor = 'rgba(240,64,64,0.7)';
+        target.style.boxShadow   = '0 0 0 3px rgba(240,64,64,0.1)';
+        const clear = () => { target.style.borderColor = ''; target.style.boxShadow = ''; };
+        target.addEventListener('input', clear, { once: true });
+        target.addEventListener('click', clear, { once: true });
+      });
+      Toast.error('Check your details', 'One or more fields need to be entered correctly before continuing.');
+      return false;
     }
+    return true;
+  }
+
+  function render() {
+    $$('.form-step').forEach(el => {
+      const n = Number(el.dataset.step);
+      const active = n === current;
+      el.classList.toggle('form-step--active', active);
+      el.hidden = !active;
+    });
+    $$('.bstep').forEach(tab => {
+      const n = Number(tab.dataset.step);
+      tab.classList.toggle('active', n === current);
+      tab.classList.toggle('completed', n < current);
+      tab.setAttribute('aria-selected', String(n === current));
+      const numEl = tab.querySelector('.bstep-num');
+      if (numEl) numEl.textContent = n < current ? '✓' : String(n);
+    });
+    $$('.bstep-line').forEach((line, i) => {
+      line.classList.toggle('filled', (i + 1) < current);
+    });
+    // Focus the first field of the newly visible step for keyboard users,
+    // but only after it's actually rendered (avoids focusing display:none),
+    // and never the visually-hidden native <select> that backs the custom
+    // service dropdown — its own trigger button is the visible control.
+    requestAnimationFrame(() => {
+      const el = stepEl(current);
+      const target = el?.querySelector('.cs-trigger') || el?.querySelector('input:not(.cs-native), select:not(.cs-native), textarea');
+      target?.focus({ preventScroll: true });
+    });
+  }
+
+  function goTo(n, { validate = true } = {}) {
+    n = Math.min(Math.max(n, 1), TOTAL);
+    if (validate && n > current) {
+      for (let s = current; s < n; s++) {
+        if (!validateStep(s)) { current = s; render(); return; }
+      }
+    }
+    current = n;
+    render();
+  }
+
+  function reset() { current = 1; render(); }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-step-next]')) { goTo(current + 1); return; }
+    if (e.target.closest('[data-step-back]')) { goTo(current - 1, { validate: false }); return; }
+    const tab = e.target.closest('.bstep');
+    if (tab) goTo(Number(tab.dataset.step));
   });
+
+  render();
+  return { goTo, reset };
+})();
+
+/* Payment method buttons: set the hidden #fpayment field and show a
+   selected state, so the chosen method travels with the rest of the
+   dispatch request on submit — this is step 3 of the wizard above. */
+(function paymentSelector() {
+  const buttons = $$('.pay-method');
+  const hidden  = $('#fpayment');
+  if (!buttons.length || !hidden) return;
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => {
+        b.classList.remove('selected');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('selected');
+      btn.setAttribute('aria-checked', 'true');
+      hidden.value = btn.dataset.method || '';
+    });
+  });
+})();
+
+/* ════════════════════════════════════════════════════
+   10a-2. CUSTOM SERVICE DROPDOWN
+   Drives the grouped, gold-accented dropdown that replaces
+   the native <select> (whose open list is drawn by the OS
+   on mobile and can't be restyled — no way to fix its blue
+   selection dot or its size from CSS). The real #fservice
+   select stays in sync underneath as the actual form data
+   source and the thing the wizard's validation checks.
+════════════════════════════════════════════════════ */
+const ServiceSelect = (function () {
+  const root     = $('#fserviceSelect');
+  const trigger  = $('#fserviceTrigger');
+  const valueEl  = $('#fserviceValue');
+  const panel    = $('#fserviceList');
+  const native   = $('#fservice');
+  const dateTimeRow = $('#dateTimeRow');
+  if (!root || !trigger || !panel || !native) return { setValue() {}, reset() {} };
+
+  const options = $$('.cs-option', panel);
+
+  function isOpen() { return !panel.hidden; }
+
+  function close() {
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    dateTimeRow?.classList.remove('dt-hidden');
+  }
+
+  function open() {
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    // Hide Date/Time while actively choosing a service so the picker is
+    // the only thing competing for attention — they reappear as soon as
+    // a service is picked (or the panel is dismissed) via close().
+    dateTimeRow?.classList.add('dt-hidden');
+    const current = options.find(o => o.getAttribute('aria-selected') === 'true') || options[0];
+    requestAnimationFrame(() => current?.focus({ preventScroll: true }));
+  }
+
+  function selectValue(text, { silent = false } = {}) {
+    if (!text) return;
+    let matched = false;
+    for (const opt of native.options) {
+      if (opt.textContent.trim().toLowerCase() === text.trim().toLowerCase()) {
+        opt.selected = true;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      const opt = document.createElement('option');
+      opt.textContent = text;
+      opt.value = text;
+      opt.selected = true;
+      native.insertBefore(opt, native.firstChild);
+    }
+    if (!silent) native.dispatchEvent(new Event('change', { bubbles: true }));
+
+    valueEl.textContent = text;
+    valueEl.classList.remove('cs-placeholder');
+    options.forEach(o => {
+      o.setAttribute('aria-selected', String(o.dataset.value.trim().toLowerCase() === text.trim().toLowerCase()));
+    });
+  }
+
+  function reset() {
+    valueEl.textContent = 'Select a service…';
+    valueEl.classList.add('cs-placeholder');
+    options.forEach(o => o.setAttribute('aria-selected', 'false'));
+    native.selectedIndex = 0;
+    dateTimeRow?.classList.remove('dt-hidden');
+  }
+
+  trigger.addEventListener('click', () => (isOpen() ? close() : open()));
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      selectValue(opt.dataset.value);
+      close();
+      trigger.focus({ preventScroll: true });
+    });
+  });
+
+  panel.addEventListener('keydown', e => {
+    const idx = options.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); (options[idx + 1] || options[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (options[idx - 1] || options[options.length - 1]).focus(); }
+    else if (e.key === 'Escape') { close(); trigger.focus({ preventScroll: true }); }
+  });
+
+  document.addEventListener('click', e => {
+    if (isOpen() && !root.contains(e.target)) close();
+  });
+
+  return { setValue: t => selectValue(t), reset };
+})();
+
+/* ════════════════════════════════════════════════════
+   10b. BOOK-A-SERVICE ROUTING
+   Any element carrying data-service (the big category
+   "Book a Service →" buttons AND every individual
+   service-item card in the 4-across grids) routes the
+   visitor straight to the booking wizard (reset to step 1)
+   and pre-selects that exact service for when they reach
+   the Service step. Handled with one delegated listener so
+   newly-added cards work for free.
+════════════════════════════════════════════════════ */
+function goToBookingWithService(serviceName) {
+  ServiceSelect.setValue(serviceName);
+  navigateTo('contact');
+  BookingWizard.reset();
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.svc-item-btn, .panel-cta');
+  if (!btn) return;
+  e.preventDefault();
+  const label = btn.dataset.service || (btn.querySelector('.svc-item-text')?.textContent) || '';
+  if (label.trim()) goToBookingWithService(label.trim());
 });
 
 /* ════════════════════════════════════════════════════
@@ -549,6 +837,7 @@ $('#openContactModal')?.addEventListener('click', () => navigateTo('contact'));
 
 /* Success modal close — use closeModal() everywhere for consistency */
 $('#closeSuccessModal')?.addEventListener('click', () => closeModal('successModal'));
+$('#successDoneBtn')?.addEventListener('click', () => closeModal('successModal'));
 
 $$('.modal-overlay').forEach(ov => {
   ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
@@ -619,19 +908,13 @@ function playChime() {
 /* ════════════════════════════════════════════════════
    15. FIELD VALIDATION CHECKMARKS
    Live green tick indicator for Name / Email / Phone /
-   Site Address on the booking form. Purely visual — the
-   native `required` + type=email/tel attributes plus the
-   :invalid check in handleForm() still gate submission.
+   Site Address on the booking form. Uses the same
+   FIELD_RULES the wizard uses to gate Continue, so a
+   green tick always means "this will actually let you
+   proceed" — never just "not empty".
 ════════════════════════════════════════════════════ */
 (function fieldCheckmarks() {
-  const RULES = {
-    fname:    v => v.trim().length >= 2,
-    femail:   v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
-    fphone:   v => v.replace(/[^\d]/g, '').length >= 10,
-    faddress: v => v.trim().length >= 5
-  };
-
-  Object.keys(RULES).forEach(id => {
+  Object.keys(FIELD_RULES).forEach(id => {
     const input = document.getElementById(id);
     if (!input) return;
     const wrap  = input.closest('.field-input-wrap');
@@ -639,7 +922,7 @@ function playChime() {
     if (!wrap || !check) return;
 
     const evaluate = () => {
-      const ok = RULES[id](input.value);
+      const ok = FIELD_RULES[id](input.value);
       input.classList.toggle('field-valid', ok);
       check.classList.toggle('show', ok);
     };
@@ -653,7 +936,7 @@ function playChime() {
   // A short poll right after load catches that case for free.
   window.addEventListener('load', () => {
     setTimeout(() => {
-      Object.keys(RULES).forEach(id => {
+      Object.keys(FIELD_RULES).forEach(id => {
         document.getElementById(id)?.dispatchEvent(new Event('input'));
       });
     }, 600);
@@ -680,23 +963,10 @@ async function handleForm(form, btn) {
     return;
   }
 
-  // ── Loading state ──
+  // ── Loading state — a plain inline spinner, no "server" talk ──
   const orig = btn.innerHTML;
-  btn.innerHTML = '<span style="opacity:.65">Sending…</span>';
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Booking your service…</span>';
   btn.disabled  = true;
-
-  // Render's free tier can spin down when idle, so a cold-start request
-  // can take up to ~50s. Reassure the user instead of leaving the button
-  // looking frozen — first at 4s (likely cold start), then again at 15s.
-  const slowTimer1 = setTimeout(() => {
-    btn.innerHTML = '<span style="opacity:.65">Waking up server…</span>';
-    Toast.info('Just a moment', 'Our server is starting up — this can take up to a minute on the first request.', 9000, 'coldstart');
-  }, 4000);
-
-  const slowTimer2 = setTimeout(() => {
-    btn.innerHTML = '<span style="opacity:.65">Almost there…</span>';
-    Toast.info('Still working', 'Thanks for your patience — finishing up your booking now.', 9000, 'coldstart');
-  }, 16000);
 
   try {
     const fd = new FormData(form);
@@ -708,7 +978,8 @@ async function handleForm(form, btn) {
       date:    fd.get('preferred_date') || '',
       time:    fd.get('preferred_time') || '',
       email:   fd.get('email')          || '',
-      message: fd.get('message')        || ''
+      message: fd.get('message')        || '',
+      payment_method: fd.get('payment_method') || ''
     };
 
     // ── POST to backend ──
@@ -721,10 +992,6 @@ async function handleForm(form, btn) {
       }
     });
 
-    clearTimeout(slowTimer1);
-    clearTimeout(slowTimer2);
-    Toast.dismissKey('coldstart');
-
     if (r.ok) {
       // ★ Reset form before showing success UI
       form.reset();
@@ -732,6 +999,18 @@ async function handleForm(form, btn) {
       // Reset checkmark state since the fields are now empty
       $$('.field-check.show').forEach(c => c.classList.remove('show'));
       $$('.field-input-wrap input.field-valid').forEach(i => i.classList.remove('field-valid'));
+
+      // ★ Back to step 1 for the next visitor / next booking
+      BookingWizard.reset();
+      ServiceSelect.reset();
+
+      // Visually reset payment method selection to match the hidden field's
+      // reset value (form.reset() reverts the value but not our own classes)
+      $$('.pay-method').forEach(b => {
+        const isCash = b.dataset.method === 'Cash';
+        b.classList.toggle('selected', isCash);
+        b.setAttribute('aria-checked', String(isCash));
+      });
 
       // ★ Play chime (AudioContext already warmed by earlier user interaction)
       playChime();
@@ -756,10 +1035,6 @@ async function handleForm(form, btn) {
     }
 
   } catch (networkErr) {
-    // Likely cold-start timeout or no connection
-    clearTimeout(slowTimer1);
-    clearTimeout(slowTimer2);
-    Toast.dismissKey('coldstart');
     console.error('Fetch error:', networkErr);
     Toast.error('Network error', 'Please check your connection and try again.');
   } finally {
@@ -811,7 +1086,7 @@ if (yr) yr.textContent = new Date().getFullYear();
   document.head.appendChild(style);
 
   document.addEventListener('click', e => {
-    const btn = e.target.closest('.btn-primary, .panel-cta, .btn-emg, .nav-cta, .spa-qcard');
+    const btn = e.target.closest('.btn-primary, .panel-cta, .btn-emg, .nav-cta, .spa-qcard, .svc-item-btn, .pay-method, .btn-step, .bstep');
     if (!btn) return;
     const r   = btn.getBoundingClientRect();
     const dot = document.createElement('span');

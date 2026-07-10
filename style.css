@@ -27,6 +27,7 @@
   --text-secondary: #8892B0;
   --text-muted:     #4A5270;
   --text-inverse:   #0E111E;
+  --text-value:     #D8D2BE; /* soft warm off-white for filled field values — not stark bright white */
 
   /* Gold — primary accent */
   --gold:      #C9A84C;
@@ -109,6 +110,7 @@
   --text-primary:   #12100A;
   --text-secondary: #454036;
   --text-muted:     #8A8275;
+  --text-value:     #3A3324;
 
   --gold:      #8A5C10;
   --gold-lt:   #A87820;
@@ -138,6 +140,12 @@
 ────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
+html, body {
+  /* Kills the default mobile blue/grey flash on tap for every link and
+     button — Safari/Chrome apply this automatically unless told not to. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
 body {
   font-family: 'Outfit', system-ui, sans-serif;
   background: var(--bg-base);
@@ -152,9 +160,30 @@ body {
   user-select: none;
   transition: background 0.4s var(--ease), color 0.4s var(--ease);
 }
-a { text-decoration: none; color: inherit; }
+a { text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
 img { max-width: 100%; display: block; }
-button { font-family: inherit; cursor: pointer; border: none; background: none; }
+button {
+  font-family: inherit; cursor: pointer; border: none; background: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+/* Every tappable surface gets a quiet, native-app-style press feedback
+   (a touch of opacity, no color flash) instead of the browser default. */
+a, button, [role="button"], [role="tab"], .svc-item-btn, .spa-qcard, .pay-method, .bstep {
+  -webkit-tap-highlight-color: transparent;
+}
+a:active, button:active, [role="button"]:active {
+  opacity: 0.82;
+}
+/* Keyboard users still get a visible, on-brand focus ring — just never a
+   stray blue outline, and never on a plain mouse/touch click. */
+a:focus, button:focus, [role="button"]:focus, [role="tab"]:focus {
+  outline: none;
+}
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible, [role="tab"]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
 ul { list-style: none; }
 address { font-style: normal; }
 
@@ -219,8 +248,8 @@ input, textarea, [contenteditable] {
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
 }
 
 /* ──────────────────────────────────────────
@@ -311,9 +340,22 @@ input, textarea, [contenteditable] {
 .btn-primary:hover::after { transform: translateX(110%); }
 .btn-primary:active { transform: translateY(0) scale(0.98); }
 .btn-primary.btn-block { width: 100%; justify-content: center; margin-top: 0.9rem; }
+.btn-primary:disabled { cursor: default; opacity: 0.88; transform: none; }
+.btn-primary:disabled:hover { transform: none; box-shadow: var(--sh-gold); }
 
 .btn-icon { flex-shrink: 0; transition: transform var(--t1); }
 .btn-primary:hover .btn-icon { transform: translateX(3px); }
+
+/* Inline button spinner — used while the booking is sending. Plain,
+   fast-feeling, no "server" language attached to it. */
+.btn-spinner {
+  width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid rgba(14,17,30,0.3);
+  border-top-color: var(--text-inverse);
+  animation: btnSpin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes btnSpin { to { transform: rotate(360deg); } }
 
 .btn-ghost {
   display: inline-flex; align-items: center; gap: 8px;
@@ -385,7 +427,7 @@ input, textarea, [contenteditable] {
 .loader-bar-fill {
   height: 100%; width: 0;
   background: var(--grad-gold);
-  animation: barLoad 1.3s var(--ease) 0.15s forwards;
+  animation: barLoad 0.5s var(--ease) 0.05s forwards;
 }
 @keyframes barLoad { to { width: 100%; } }
 
@@ -449,6 +491,7 @@ input, textarea, [contenteditable] {
 .slider-track {
   display: flex; gap: 10px; width: max-content;
   animation: stripScroll 52s linear infinite;
+  will-change: transform;
 }
 .slider-track:hover { animation-play-state: paused; }
 @keyframes stripScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
@@ -475,9 +518,9 @@ input, textarea, [contenteditable] {
 ────────────────────────────────────────── */
 #header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 800;
-  background: rgba(7,10,20,0.82);
-  backdrop-filter: blur(28px) saturate(1.6);
-  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  background: rgba(7,10,20,0.88);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid var(--glass-border);
   transition: background var(--t2), box-shadow var(--t2);
   display: flex; flex-direction: column;
@@ -686,6 +729,7 @@ input, textarea, [contenteditable] {
 .ticker-inner {
   display: flex; align-items: center; white-space: nowrap; gap: 0;
   animation: tickerMove 32s linear infinite;
+  will-change: transform;
 }
 .ticker-inner span {
   font-family: 'Space Mono', monospace; font-size: 0.6rem;
@@ -809,7 +853,7 @@ input, textarea, [contenteditable] {
   opacity: 0.5;
 }
 
-.orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
+.orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; contain: layout paint; will-change: transform; }
 
 /* ──────────────────────────────────────────
    HERO BANNER — 5-photo crossfade slideshow
@@ -1239,16 +1283,113 @@ input, textarea, [contenteditable] {
 .info-arrow { color: var(--text-muted); flex-shrink: 0; transition: transform var(--t1); }
 .info-card:hover .info-arrow { color: var(--gold); transform: translateX(3px); }
 
+/* ──────────────────────────────────────────
+   BOOKING & PAYMENT CARD
+   Lives INSIDE the booking form itself (not a
+   static sidebar panel) — each method is a real
+   button that sets the hidden `payment_method`
+   field, so the choice travels with the rest of
+   the dispatch request. No card numbers are ever
+   collected here — settlement still happens in
+   person/by transfer; this only records intent.
+────────────────────────────────────────── */
+.payment-field { margin-bottom: 1.1rem; }
+.payment-card {
+  margin-top: 0.4rem;
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.35rem 1.4rem;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-input);
+  border: 1px solid var(--glass-border2);
+}
+.payment-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold);
+}
+.payment-card::after {
+  content: '';
+  position: absolute; top: -40%; right: -18%;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-glow), transparent 70%);
+  pointer-events: none;
+}
+.payment-card-head {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  margin-bottom: 1.1rem; position: relative; z-index: 1;
+}
+.payment-card-icon {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: var(--radius);
+  background: var(--gold-glow); border: 1px solid var(--gold-ring);
+  display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+}
+.payment-card-headtext { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.payment-card-title {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.94rem;
+  color: var(--text-primary); line-height: 1.3;
+}
+.payment-card-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.56rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px;
+}
+.payment-card-badge {
+  font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--green); white-space: nowrap;
+  background: rgba(31,200,116,0.1); border: 1px solid rgba(31,200,116,0.25);
+  padding: 4px 9px; border-radius: var(--radius-pill); flex-shrink: 0; align-self: flex-start;
+}
+.payment-methods {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 1rem; position: relative; z-index: 1;
+}
+.pay-method {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 0.75rem 0.5rem; border-radius: var(--radius);
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  transition: all var(--t2); text-align: center;
+  cursor: pointer; position: relative; width: 100%;
+}
+.pay-method:hover { border-color: var(--gold); background: var(--gold-glow); transform: translateY(-2px); }
+.pay-method:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pay-method.selected {
+  border-color: var(--gold);
+  background: var(--gold-glow);
+  box-shadow: 0 0 0 1px var(--gold-ring), var(--sh-sm);
+}
+.pay-method.selected .pay-label { color: var(--text-primary); }
+.pay-method.selected::after {
+  content: '✓';
+  position: absolute; top: 4px; right: 6px;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--grad-gold); color: var(--text-inverse);
+  font-size: 0.55rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.pay-icon { font-size: 1.2rem; }
+.pay-label {
+  font-size: 0.62rem; font-weight: 600; color: var(--text-secondary);
+  line-height: 1.3; transition: color var(--t1);
+}
+.pay-method:hover .pay-label { color: var(--text-primary); }
+.payment-note {
+  font-size: 0.72rem; color: var(--text-muted); line-height: 1.6;
+  position: relative; z-index: 1;
+}
+
 .form-shell {
   border-radius: var(--radius-xl); padding: 2rem;
   position: relative; overflow: hidden;
   background: var(--bg-card); border: 1px solid var(--glass-border);
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
 }
 .form-shell::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0;
   height: 2px; background: var(--grad-gold);
 }
-.form-shell-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.form-shell-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .form-shell-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--text-primary); }
 .form-shell-badge {
   font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 0.12em;
@@ -1256,7 +1397,95 @@ input, textarea, [contenteditable] {
   background: var(--gold-glow); border: 1px solid var(--gold-ring);
   padding: 3px 9px; border-radius: var(--radius-pill);
 }
+
+/* ──────────────────────────────────────────
+   BOOKING WIZARD — 4-step SPA-style flow
+   (Details → Service → Payment → Confirm)
+   inside the booking card. Steps never reflow
+   the surrounding page; only the card's own
+   inner content swaps, so the card itself
+   stays put on screen while you move through it.
+────────────────────────────────────────── */
+.booking-stepper {
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 1.5rem;
+}
+.bstep {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  background: none; border: none; cursor: pointer; flex-shrink: 0;
+  padding: 2px; transition: opacity var(--t2);
+}
+.bstep-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.72rem;
+  color: var(--text-muted); background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border2);
+  transition: all var(--t2);
+}
+.bstep-label {
+  font-family: 'Space Mono', monospace; font-size: 0.46rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+  transition: color var(--t2); white-space: nowrap;
+}
+.bstep.active .bstep-num {
+  background: var(--grad-gold); border-color: transparent; color: var(--text-inverse);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+.bstep.active .bstep-label { color: var(--gold-lt); }
+.bstep.completed .bstep-num {
+  background: var(--gold-glow); border-color: var(--gold); color: var(--gold);
+}
+.bstep-line {
+  flex: 1 1 auto; height: 1.5px; background: var(--glass-border2);
+  margin-bottom: 15px; min-width: 8px; transition: background var(--t2);
+}
+.bstep-line.filled { background: var(--gold); }
+
+.booking-steps-wrap { position: relative; min-height: 260px; }
+.form-step { display: none; }
+.form-step--active { display: block; animation: stepFadeIn 0.32s ease both; }
+@keyframes stepFadeIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.step-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 1.1rem;
+}
+.step-actions-spacer { flex: 1 1 auto; }
+.btn-step {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.76rem;
+  letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 0.62rem 1.15rem; border-radius: var(--radius);
+  cursor: pointer; transition: all var(--t2); border: 1px solid var(--glass-border2);
+  background: var(--glass-bg); color: var(--text-secondary);
+}
+.btn-step-next {
+  margin-left: auto;
+  background: var(--grad-gold); color: var(--text-inverse); border: none;
+  box-shadow: 0 3px 14px var(--gold-glow);
+}
+.btn-step-next:hover { transform: translateY(-2px); box-shadow: 0 8px 22px var(--gold-ring); }
+.btn-step-back:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+/* Collapses smoothly while the service dropdown panel is open, so the
+   date/time fields don't clutter the view while picking a service —
+   reappears the moment a service is chosen (or the panel is dismissed). */
+#dateTimeRow {
+  transition: opacity 0.25s var(--ease), max-height 0.3s var(--ease), margin-bottom 0.3s var(--ease);
+  max-height: 200px;
+  overflow: hidden;
+}
+#dateTimeRow.dt-hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
 .field:last-of-type { margin-bottom: 0; }
 .field label {
@@ -1279,6 +1508,86 @@ input, textarea, [contenteditable] {
 .field textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .field select option { background: var(--bg-card); color: var(--text-primary); }
 .field textarea { height: 82px; resize: vertical; }
+
+/* Real <select> kept only as the form's actual data source + native
+   required/validity check — visually hidden (not display:none, so it
+   still counts as "rendered" for constraint validation) and removed
+   from the tab order / a11y tree since the custom listbox below is
+   the control people actually see and use. */
+.cs-native {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────
+   CUSTOM SERVICE DROPDOWN
+   Replaces the native <select> so the field
+   can have a properly muted placeholder, a
+   readable (non-glaring) selected-value color,
+   gold accents instead of the OS's blue radio
+   dots, and a compact, grouped, scrollable
+   panel instead of a full-screen native picker.
+────────────────────────────────────────── */
+.custom-select { position: relative; }
+.cs-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; text-align: left;
+  background: var(--bg-input); border: 1px solid var(--glass-border);
+  border-radius: var(--radius); padding: 0.68rem 0.9rem;
+  font-family: 'Outfit', sans-serif; font-size: 0.85rem;
+  cursor: pointer; transition: border-color var(--t1), box-shadow var(--t1);
+}
+.cs-trigger:hover { border-color: var(--glass-border2); }
+.cs-trigger[aria-expanded="true"],
+.cs-trigger:focus-visible {
+  border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); outline: none;
+}
+.cs-value {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--text-value); /* readable, not stark bright white */
+}
+.cs-value.cs-placeholder { color: var(--text-muted); }
+.cs-caret { flex-shrink: 0; color: var(--text-muted); transition: transform var(--t2); }
+.cs-trigger[aria-expanded="true"] .cs-caret { transform: rotate(180deg); color: var(--gold); }
+
+.cs-panel {
+  position: absolute; left: 0; right: 0; top: calc(100% + 8px);
+  z-index: 40;
+  background: var(--bg-card); border: 1px solid var(--glass-border2);
+  border-radius: var(--radius-lg); box-shadow: var(--sh-lg);
+  padding: 6px;
+  max-height: 260px; overflow-y: auto;
+  animation: csPanelIn 0.16s var(--ease) both;
+}
+@keyframes csPanelIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cs-group + .cs-group { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--glass-border); }
+.cs-group-label {
+  font-family: 'Space Mono', monospace; font-size: 0.5rem;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+  padding: 6px 10px 4px;
+}
+.cs-option {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 8px;
+  padding: 0.62rem 0.7rem; margin: 1px 0;
+  font-family: 'Outfit', sans-serif; font-size: 0.83rem; line-height: 1.35;
+  color: var(--text-secondary); cursor: pointer;
+  transition: background var(--t1), color var(--t1);
+}
+.cs-option:hover { background: var(--glass-bg2); color: var(--text-primary); }
+.cs-option:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.cs-option[aria-selected="true"] {
+  background: var(--gold-glow); color: var(--gold-lt);
+  font-weight: 600;
+}
+.cs-option--urgent { color: var(--red); }
+.cs-option--urgent:hover { background: rgba(240,64,64,0.1); color: var(--red); }
+.cs-option--urgent[aria-selected="true"] { background: rgba(240,64,64,0.14); color: var(--red); }
+
 
 /* ── Validated field wrapper (checkmark indicator) ──
    Wraps Name / Email / Phone / Address inputs on the booking
@@ -1358,6 +1667,7 @@ input, textarea, [contenteditable] {
   width: max-content;
   gap: 2.5rem;
   animation: footerTaglineSlide 13s linear infinite;
+  will-change: transform;
 }
 .footer-tagline-track span {
   font-family: 'Space Mono', monospace; font-size: 0.48rem;
@@ -1407,6 +1717,7 @@ input, textarea, [contenteditable] {
   width: max-content;
   flex: 1;
   animation: fsgSlideLeft 34s linear infinite;
+  will-change: transform;
 }
 .footer-showcase-row--rev { animation-name: fsgSlideRight; animation-duration: 40s; }
 @keyframes fsgSlideLeft  { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -1509,10 +1820,15 @@ input, textarea, [contenteditable] {
 .footer-contact-wrap {
   position: relative;
   isolation: isolate;
-  border-radius: var(--radius-xl);
   overflow: hidden;
-  padding: 1.5rem;
-  width: 100%;
+  padding: 2rem 1.75rem;
+  /* Full-bleed: the sliding photo band spans the entire viewport width,
+     breaking out of the page's usual container padding, for more visual
+     presence — while the cards inside stay readable via their own max-width. */
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0;
   flex: 1 1 100%;
 }
 .footer-contact-bg {
@@ -1522,8 +1838,9 @@ input, textarea, [contenteditable] {
 .footer-contact-bg-row {
   display: flex; gap: 8px; width: max-content; height: 100%;
   animation: fsgSlideLeft 46s linear infinite;
+  will-change: transform;
 }
-.footer-contact-bg .fsg-tile { width: 190px; box-shadow: none; border-radius: 0; }
+.footer-contact-bg .fsg-tile { width: 230px; box-shadow: none; border-radius: 0; }
 .footer-contact-bg .fsg-tile img { filter: saturate(0.6) brightness(0.4); }
 .footer-contact-bg-scrim {
   position: absolute; inset: 0;
@@ -1533,10 +1850,10 @@ input, textarea, [contenteditable] {
 
 .footer-contact.info-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  max-width: none;
-  margin-top: 0;
+  max-width: var(--container);
+  margin: 0 auto;
 }
 .footer-contact .info-card { background: rgba(16,20,35,0.72); }
 .footer-contact .info-val { white-space: normal; }
@@ -1598,7 +1915,10 @@ input, textarea, [contenteditable] {
 }
 .modal-card-sm p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; }
 
-.fab-cluster { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.fab-cluster { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900; display: flex; flex-direction: column; gap: 10px; align-items: center; transition: opacity var(--t2), transform var(--t2); }
+/* Prevents the fixed FAB cluster from ever intercepting taps meant for the
+   booking wizard's Continue/Back buttons underneath it. */
+body.is-booking-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
 .fab {
   width: 48px; height: 48px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -1609,6 +1929,7 @@ input, textarea, [contenteditable] {
   content: ''; position: absolute; inset: -5px; border-radius: 50%;
   border: 1.5px solid currentColor; opacity: 0;
   animation: fabRing 3s ease-in-out infinite;
+  pointer-events: none;
 }
 @keyframes fabRing {
   0%,100%{ opacity:0; transform:scale(1); }
@@ -1778,6 +2099,43 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
+.spa-quicknav-grid--3 { grid-template-columns: repeat(3, 1fr); }
+
+/* ──────────────────────────────────────────
+   GET IN TOUCH — home-page contact highlight
+   All 6 contact details, moved up from the
+   footer, sit here now. Purely informational —
+   no booking action in this section; booking
+   stays exclusively in the Services section.
+────────────────────────────────────────── */
+.contact-highlight-section {
+  position: relative;
+  background: var(--bg-raised);
+  overflow: hidden;
+  isolation: isolate;
+}
+.contact-highlight-glow {
+  position: absolute; z-index: 0; pointer-events: none;
+  top: -22%; left: 50%; transform: translateX(-50%);
+  width: 640px; height: 640px; border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 68%);
+}
+.contact-highlight-section .container { position: relative; z-index: 1; }
+
+.contact-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.contact-highlight-grid .info-val { white-space: normal; }
+
+.contact-highlight-badges {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap;
+}
+.contact-highlight-badges .fbadge { font-size: 0.56rem; padding: 5px 12px; }
+
 
 .spa-qcard {
   display: flex;
@@ -1867,6 +2225,189 @@ body {
   background: transparent;
 }
 
+/* ──────────────────────────────────────────
+   SERVICE-ITEM GALAXY GRID (4 across, always)
+   Moved in from an inline <style> block so it
+   lives with the rest of the stylesheet. The
+   grid stays 4-columns "side by side" at every
+   width per the client's request — instead of
+   collapsing to 2 or 1 columns, cards shrink.
+────────────────────────────────────────── */
+.svc-galaxy-wrap{
+  position:relative;
+  margin-top:28px;
+  padding:32px 26px 30px;
+  border-radius:26px;
+  overflow:hidden;
+  border:1px solid var(--glass-border);
+  background:var(--bg-base);
+  isolation:isolate;
+}
+.svc-galaxy-bg{
+  position:absolute;
+  inset:-60%;
+  z-index:0;
+  pointer-events:none;
+  /* Recolored to the site's own gold / navy-blue palette (was purple/teal/pink) */
+  background:
+    radial-gradient(circle at 18% 25%, var(--gold-glow) 0%, transparent 42%),
+    radial-gradient(circle at 82% 20%, var(--blue-glow) 0%, transparent 44%),
+    radial-gradient(circle at 30% 80%, var(--gold-glow) 0%, transparent 46%),
+    radial-gradient(circle at 78% 78%, var(--blue-glow) 0%, transparent 46%),
+    conic-gradient(from 0deg at 50% 50%, var(--bg-base) 0%, var(--bg-raised) 30%, var(--bg-base) 55%, var(--bg-raised) 80%, var(--bg-base) 100%);
+  filter:blur(70px) saturate(1.3);
+  animation:galaxySpin 50s linear infinite;
+  transform-origin:center;
+}
+.svc-galaxy-stars{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(255,255,255,0.95), transparent),
+    radial-gradient(1.2px 1.2px at 32% 62%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.6px 1.6px at 52% 30%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.2px 1.2px at 68% 78%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(1.6px 1.6px at 82% 15%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.2px 1.2px at 90% 55%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.6px 1.6px at 8% 85%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.2px 1.2px at 45% 92%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.4px 1.4px at 60% 5%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.2px 1.2px at 22% 40%, rgba(255,255,255,0.7), transparent);
+  background-size:100% 100%;
+  animation:starTwinkle 3.2s ease-in-out infinite alternate;
+  opacity:0.9;
+}
+.svc-galaxy-stars--far{
+  background-size:140% 140%;
+  background-position:20% 30%;
+  opacity:0.45;
+  animation:starTwinkle 4.6s ease-in-out infinite alternate-reverse, starDrift 70s linear infinite;
+  filter:blur(0.3px);
+}
+@keyframes galaxySpin{
+  from{ transform:rotate(0deg) scale(1); }
+  50%{ transform:rotate(180deg) scale(1.08); }
+  to{ transform:rotate(360deg) scale(1); }
+}
+@keyframes starTwinkle{
+  from{ opacity:0.35; }
+  to{ opacity:1; }
+}
+@keyframes starDrift{
+  from{ background-position:0% 0%; }
+  to{ background-position:100% 100%; }
+}
+
+.svc-item-grid{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:18px;
+}
+.svc-item-btn{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:14px;
+  width:100%;
+  min-height:200px;
+  text-align:left;
+  padding:24px 20px 20px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(14,16,28,0.62);
+  backdrop-filter:blur(10px);
+  cursor:pointer;
+  overflow:hidden;
+  font-family:inherit;
+  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
+}
+.svc-item-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:0;
+  background:linear-gradient(160deg, var(--sib-accent, #C8A44A) 0%, transparent 60%);
+  transition:opacity .22s ease;
+  pointer-events:none;
+}
+.svc-item-btn:hover, .svc-item-btn:focus-visible{
+  transform:translateY(-4px);
+  border-color:var(--sib-accent, #C8A44A);
+  box-shadow:0 10px 28px -12px var(--sib-accent, #C8A44A);
+}
+.svc-item-btn:hover::before, .svc-item-btn:focus-visible::before{ opacity:0.12; }
+.svc-item-btn:active{ transform:translateY(-1px) scale(0.99); }
+
+.svc-item-icon{
+  flex:0 0 auto;
+  width:52px; height:52px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:14px;
+  font-size:1.5rem;
+  background:var(--sib-icon-bg, rgba(200,164,74,0.15));
+  box-shadow:0 0 0 1px var(--sib-accent, #C8A44A) inset;
+}
+.svc-item-text{
+  flex:1 1 auto;
+  font-size:1rem;
+  line-height:1.4;
+  color:#E8E9F0;
+  font-weight: 500;
+}
+.svc-item-arrow{
+  position:absolute;
+  top:18px; right:18px;
+  width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  background:var(--sib-accent, #C8A44A);
+  color:#0a0d16;
+  font-size:0.75rem;
+  transform:translateX(0);
+  transition:transform .22s ease;
+}
+.svc-item-btn:hover .svc-item-arrow{ transform:translateX(3px); }
+
+/* Eight rotating accent themes for visual variety */
+.svc-item-btn--01{ --sib-accent:#C8A44A; --sib-icon-bg:rgba(200,164,74,0.16); }
+.svc-item-btn--02{ --sib-accent:#4AC8C0; --sib-icon-bg:rgba(74,200,192,0.16); }
+.svc-item-btn--03{ --sib-accent:#8A7CF0; --sib-icon-bg:rgba(138,124,240,0.16); }
+.svc-item-btn--04{ --sib-accent:#F0708A; --sib-icon-bg:rgba(240,112,138,0.16); }
+.svc-item-btn--05{ --sib-accent:#6FCF97; --sib-icon-bg:rgba(111,207,151,0.16); }
+.svc-item-btn--06{ --sib-accent:#F0A860; --sib-icon-bg:rgba(240,168,96,0.16); }
+.svc-item-btn--07{ --sib-accent:#5CA8F0; --sib-icon-bg:rgba(92,168,240,0.16); }
+.svc-item-btn--08{ --sib-accent:#E0C860; --sib-icon-bg:rgba(224,200,96,0.16); }
+
+@media (prefers-reduced-motion: reduce){
+  .svc-galaxy-bg, .svc-galaxy-stars, .svc-galaxy-stars--far{ animation:none; }
+  .orb, .badge-pulse, .status-dot, .ticker-inner, .hero-banner-slide,
+  .footer-showcase-row, .footer-tagline-track, .footer-contact-bg-row,
+  .scroll-line, .emg-icon, .slider-track { animation: none !important; }
+}
+
+/* Decorative, always-on animations add up on a phone's battery/CPU for
+   zero benefit while the tab isn't even visible — pause them the same
+   way the particle canvas already pauses itself. */
+body.is-tab-hidden .orb,
+body.is-tab-hidden .badge-pulse,
+body.is-tab-hidden .status-dot,
+body.is-tab-hidden .ticker-inner,
+body.is-tab-hidden .hero-banner-slide,
+body.is-tab-hidden .footer-showcase-row,
+body.is-tab-hidden .footer-tagline-track,
+body.is-tab-hidden .footer-contact-bg-row,
+body.is-tab-hidden .slider-track,
+body.is-tab-hidden .svc-galaxy-bg,
+body.is-tab-hidden .svc-galaxy-stars,
+body.is-tab-hidden .svc-galaxy-stars--far {
+  animation-play-state: paused;
+}
+
 @media (max-width: 1024px) {
   .panel-grid { grid-template-columns: 1fr; }
   .emg-grid { grid-template-columns: 1fr; }
@@ -1883,21 +2424,62 @@ body {
   .hero-metrics { display: none; }
   .review-card { flex: 0 0 100%; }
   .spa-quicknav-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Cards stay full-size and "side by side" — the row scrolls horizontally
+     instead of shrinking the cards down to fit 4 columns in less width. */
+  .svc-item-grid {
+    grid-template-columns: unset;
+    grid-auto-flow: column;
+    grid-auto-columns: 230px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    scrollbar-width: none;
+  }
+  .svc-item-grid::-webkit-scrollbar { display: none; }
+  .svc-item-btn { scroll-snap-align: start; min-height: 190px; }
+  .svc-galaxy-wrap { padding: 24px 16px 20px; }
+  .footer-contact.info-cards { grid-template-columns: repeat(3, 1fr); }
+  .footer-contact-wrap { padding: 1.75rem 1.25rem; }
+  .contact-highlight-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-highlight-glow { width: 460px; height: 460px; }
+  .payment-methods { gap: 6px; }
 }
 
 @media (max-width: 640px) {
   .hero-h1 { font-size: clamp(2.2rem, 8vw, 3.2rem); }
-  .hero-stats { flex-direction: column; align-items: center; }
-  .hstat-sep { width: 60px; height: 1px; }
+  .hero-stats { flex-wrap: nowrap; width: 100%; justify-content: space-between; }
+  .hstat { padding: 0.7rem 0.5rem; flex: 1 1 0; }
+  .hstat-val { font-size: 1.25rem; }
+  .hstat-lbl { font-size: 0.38rem; letter-spacing: 0.08em; }
+  .hstat-sep { width: 1px; height: 22px; }
   .footer-top { flex-direction: column; }
   .footer-showcase { height: 190px; }
   .fsg-tile { width: 150px; }
   .footer-nav-row { grid-template-columns: 1fr 1fr; }
   .fnc-label { font-size: 0.78rem; }
-  .footer-contact.info-cards { grid-template-columns: 1fr; }
-  .footer-contact-wrap { padding: 1rem; }
+  .footer-contact.info-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .footer-contact-wrap { padding: 1.25rem 1rem; }
+  .footer-contact-bg .fsg-tile { width: 140px; }
+  .footer-contact .info-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
+  .footer-contact .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
+  .footer-contact .info-val { font-size: 0.74rem; }
+  .footer-contact .info-lbl { font-size: 0.44rem; }
+  .contact-highlight-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+  .contact-highlight-grid .info-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
+  .contact-highlight-grid .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
+  .contact-highlight-grid .info-val { font-size: 0.74rem; }
+  .contact-highlight-grid .info-lbl { font-size: 0.44rem; }
+  .contact-highlight-glow { width: 340px; height: 340px; }
 
-  .form-shell { padding: 1.25rem; }
+  .form-shell { padding: 1.25rem; max-width: 100%; }
+  .booking-stepper { gap: 2px; margin-bottom: 1.1rem; }
+  .bstep-num { width: 22px; height: 22px; font-size: 0.62rem; }
+  .bstep-label { font-size: 0.4rem; }
+  .bstep-line { margin-bottom: 12px; }
+  .booking-steps-wrap { min-height: 230px; }
+  .btn-step { padding: 0.56rem 0.9rem; font-size: 0.7rem; }
   .form-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .field { gap: 4px; margin-bottom: 8px; }
   .field label { font-size: 0.46rem; }
@@ -1923,12 +2505,25 @@ body {
   .btn-emg, .btn-emg-wa { justify-content: center; }
   .service-grid { grid-template-columns: 1fr; }
   .row-2 { grid-template-columns: 1fr; }
+  .svc-item-grid { grid-auto-columns: 200px; gap: 12px; }
+  .svc-item-btn { min-height: 176px; padding: 18px 16px 14px; gap: 10px; border-radius: 16px; }
+  .svc-item-icon { width: 44px; height: 44px; font-size: 1.3rem; border-radius: 12px; }
+  .svc-item-text { font-size: 0.86rem; line-height: 1.32; }
+  .svc-item-arrow { width: 24px; height: 24px; font-size: 0.68rem; top: 14px; right: 14px; }
+  .svc-galaxy-wrap { padding: 18px 12px 16px; border-radius: 20px; }
+  .payment-methods { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .pay-method { padding: 0.6rem 0.3rem; }
+  .pay-icon { font-size: 1.1rem; }
+  .pay-label { font-size: 0.58rem; }
+  .payment-card { padding: 1.1rem 1rem 1.2rem; }
 }
 
 @media (max-width: 400px) {
   .nav-bar { padding: 0 1rem; }
   .logo-name { font-size: 1rem; }
   .form-row { grid-template-columns: 1fr; }
+  .bstep-label { display: none; }
+  .bstep-num { width: 24px; height: 24px; }
 }
 
 @media (max-width: 540px) {
@@ -1947,4 +2542,7 @@ body {
 
 @media (max-width: 360px) {
   .spa-quicknav-grid { grid-template-columns: 1fr; }
+  .svc-item-grid { grid-auto-columns: 178px; gap: 10px; }
+  .svc-item-btn { min-height: 160px; padding: 15px 13px 12px; border-radius: 14px; }
+  .svc-item-text { font-size: 0.78rem; }
 }
