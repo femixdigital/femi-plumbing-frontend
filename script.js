@@ -620,6 +620,7 @@ const ServiceSelect = (function () {
   const panel    = $('#fserviceList');
   const native   = $('#fservice');
   const dateTimeRow = $('#dateTimeRow');
+  const step2Actions = $('#step2Actions');
   if (!root || !trigger || !panel || !native) return { setValue() {}, reset() {} };
 
   const options = $$('.cs-option', panel);
@@ -630,15 +631,18 @@ const ServiceSelect = (function () {
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     dateTimeRow?.classList.remove('dt-hidden');
+    step2Actions?.classList.remove('dt-hidden');
   }
 
   function open() {
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
-    // Hide Date/Time while actively choosing a service so the picker is
-    // the only thing competing for attention — they reappear as soon as
-    // a service is picked (or the panel is dismissed) via close().
+    // Hide Date/Time and the Back/Continue row while actively choosing a
+    // service so the picker is the only thing competing for attention —
+    // they all reappear as soon as a service is picked (or the panel is
+    // dismissed) via close().
     dateTimeRow?.classList.add('dt-hidden');
+    step2Actions?.classList.add('dt-hidden');
     const current = options.find(o => o.getAttribute('aria-selected') === 'true') || options[0];
     requestAnimationFrame(() => current?.focus({ preventScroll: true }));
   }
@@ -675,6 +679,7 @@ const ServiceSelect = (function () {
     options.forEach(o => o.setAttribute('aria-selected', 'false'));
     native.selectedIndex = 0;
     dateTimeRow?.classList.remove('dt-hidden');
+    step2Actions?.classList.remove('dt-hidden');
   }
 
   trigger.addEventListener('click', () => (isOpen() ? close() : open()));
@@ -832,8 +837,9 @@ function closeModal(id) {
 }
 
 /* Hero / nav "Book" buttons → go to contact view */
-$('#heroQuoteBtn')?.addEventListener('click',     () => navigateTo('contact'));
-$('#openContactModal')?.addEventListener('click', () => navigateTo('contact'));
+/* Hero / nav CTAs now route to Services via their own data-view="services"
+   attribute (handled by the generic [data-view] delegated click handler
+   above) — booking itself only ever starts from inside the Services view. */
 
 /* Success modal close — use closeModal() everywhere for consistency */
 $('#closeSuccessModal')?.addEventListener('click', () => closeModal('successModal'));

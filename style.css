@@ -323,7 +323,7 @@ input, textarea, [contenteditable] {
   background: var(--grad-gold); color: var(--text-inverse);
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem;
   letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 0.82rem 1.75rem; border-radius: var(--radius);
+  padding: 0.82rem 1.75rem; border-radius: var(--radius-pill);
   position: relative; overflow: hidden;
   transition: transform var(--t2), box-shadow var(--t2);
   box-shadow: var(--sh-gold); cursor: pointer;
@@ -363,7 +363,7 @@ input, textarea, [contenteditable] {
   color: var(--text-secondary); font-family: 'Syne', sans-serif;
   font-weight: 700; font-size: 0.82rem;
   letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 0.82rem 1.75rem; border-radius: var(--radius);
+  padding: 0.82rem 1.75rem; border-radius: var(--radius-pill);
   backdrop-filter: blur(12px); transition: all var(--t2);
 }
 .btn-ghost:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
@@ -660,7 +660,7 @@ input, textarea, [contenteditable] {
 .nav-cta {
   font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-inverse);
-  padding: 7px 14px; border-radius: var(--radius);
+  padding: 7px 14px; border-radius: var(--radius-pill);
   background: var(--grad-gold);
   display: inline-flex; align-items: center; gap: 5px;
   transition: transform var(--t1), box-shadow var(--t1);
@@ -780,7 +780,7 @@ input, textarea, [contenteditable] {
 }
 .mob-action-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 0.7rem; border-radius: var(--radius);
+  padding: 0.7rem; border-radius: var(--radius-pill);
   font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
   background: var(--glass-bg); border: 1px solid var(--glass-border2);
   transition: all var(--t1); letter-spacing: 0.03em;
@@ -1041,7 +1041,7 @@ input, textarea, [contenteditable] {
 .svc-tab {
   font-family: 'Syne', sans-serif; font-size: 0.74rem; font-weight: 700;
   letter-spacing: 0.03em; color: var(--text-secondary);
-  padding: 7px 14px; border-radius: 7px; white-space: nowrap;
+  padding: 7px 14px; border-radius: var(--radius-pill); white-space: nowrap;
   transition: color var(--t1), background var(--t1); cursor: pointer;
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 5px; background: none; border: none;
@@ -1051,7 +1051,7 @@ input, textarea, [contenteditable] {
 .tab-emergency.active { color: var(--red); }
 .tab-indicator {
   position: absolute; top: 4px; bottom: 4px; left: 4px;
-  border-radius: 7px; background: var(--bg-card); box-shadow: var(--sh-sm);
+  border-radius: var(--radius-pill); background: var(--bg-card); box-shadow: var(--sh-sm);
   border: 1px solid var(--glass-border2);
   transition: left 0.32s var(--ease), width 0.32s var(--ease);
   z-index: 0; pointer-events: none;
@@ -1084,7 +1084,7 @@ input, textarea, [contenteditable] {
   background: var(--grad-gold); color: var(--text-inverse);
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.75rem;
   letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 0.65rem 1.2rem; border-radius: var(--radius);
+  padding: 0.65rem 1.2rem; border-radius: var(--radius-pill);
   cursor: pointer; transition: all var(--t2); margin-top: auto;
   box-shadow: 0 3px 14px var(--gold-glow); border: none;
 }
@@ -1139,7 +1139,7 @@ input, textarea, [contenteditable] {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--red); color: #fff; font-family: 'Syne', sans-serif;
   font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em;
-  padding: 0.82rem 1.4rem; border-radius: var(--radius);
+  padding: 0.82rem 1.4rem; border-radius: var(--radius-pill);
   transition: all var(--t2); box-shadow: 0 4px 18px rgba(240,64,64,0.28);
   border: none; cursor: pointer;
 }
@@ -1148,7 +1148,7 @@ input, textarea, [contenteditable] {
   display: inline-flex; align-items: center; gap: 8px;
   background: #075E54; color: #fff; font-family: 'Syne', sans-serif;
   font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em;
-  padding: 0.82rem 1.4rem; border-radius: var(--radius);
+  padding: 0.82rem 1.4rem; border-radius: var(--radius-pill);
   transition: all var(--t2); border: 1px solid rgba(37,211,102,0.2); cursor: pointer;
 }
 .btn-emg-wa:hover { background: #128C7E; transform: translateY(-2px); }
@@ -1459,7 +1459,7 @@ input, textarea, [contenteditable] {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.76rem;
   letter-spacing: 0.03em; text-transform: uppercase;
-  padding: 0.62rem 1.15rem; border-radius: var(--radius);
+  padding: 0.62rem 1.15rem; border-radius: var(--radius-pill);
   cursor: pointer; transition: all var(--t2); border: 1px solid var(--glass-border2);
   background: var(--glass-bg); color: var(--text-secondary);
 }
@@ -1475,15 +1475,15 @@ input, textarea, [contenteditable] {
 /* Collapses smoothly while the service dropdown panel is open, so the
    date/time fields don't clutter the view while picking a service —
    reappears the moment a service is chosen (or the panel is dismissed). */
-#dateTimeRow {
-  transition: opacity 0.25s var(--ease), max-height 0.3s var(--ease), margin-bottom 0.3s var(--ease);
+#dateTimeRow, #step2Actions {
+  transition: opacity 0.25s var(--ease), max-height 0.3s var(--ease), margin 0.3s var(--ease);
   max-height: 200px;
   overflow: hidden;
 }
-#dateTimeRow.dt-hidden {
+#dateTimeRow.dt-hidden, #step2Actions.dt-hidden {
   opacity: 0;
   max-height: 0;
-  margin-bottom: 0;
+  margin: 0;
   pointer-events: none;
 }
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
@@ -1630,7 +1630,7 @@ input, textarea, [contenteditable] {
 .wa-btn {
   width: 100%; background: #075E54; color: #fff;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 0.75rem; border-radius: var(--radius); font-weight: 600; font-size: 0.84rem;
+  padding: 0.75rem; border-radius: var(--radius-pill); font-weight: 600; font-size: 0.84rem;
   transition: all var(--t2); border: 1px solid rgba(37,211,102,0.22); cursor: pointer;
 }
 .wa-btn:hover { background: #128C7E; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.2); }
@@ -2061,7 +2061,7 @@ body {
   color: var(--text-secondary);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border2);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   padding: 6px 14px;
   cursor: pointer;
   transition: all var(--t2);
@@ -2099,43 +2099,46 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
-.spa-quicknav-grid--3 { grid-template-columns: repeat(3, 1fr); }
 
 /* ──────────────────────────────────────────
-   GET IN TOUCH — home-page contact highlight
-   All 6 contact details, moved up from the
-   footer, sit here now. Purely informational —
-   no booking action in this section; booking
-   stays exclusively in the Services section.
+   COMPACT CONTACT CARD — 4th quicknav tile.
+   All six contact methods condensed into small,
+   independently-clickable buttons inside one
+   card. Purely informational: no booking action
+   anywhere in here — booking stays exclusively
+   in the Services section.
 ────────────────────────────────────────── */
-.contact-highlight-section {
-  position: relative;
-  background: var(--bg-raised);
-  overflow: hidden;
-  isolation: isolate;
+.spa-qcard--contact {
+  cursor: default;
+  align-items: stretch;
 }
-.contact-highlight-glow {
-  position: absolute; z-index: 0; pointer-events: none;
-  top: -22%; left: 50%; transform: translateX(-50%);
-  width: 640px; height: 640px; border-radius: 50%;
-  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 68%);
-}
-.contact-highlight-section .container { position: relative; z-index: 1; }
-
-.contact-highlight-grid {
+.spa-qcard--contact .spa-qcard-title { margin-bottom: 0.15rem; }
+.qc-contact-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 6px;
+  margin-top: 0.5rem;
 }
-.contact-highlight-grid .info-val { white-space: normal; }
-
-.contact-highlight-badges {
-  display: flex; align-items: center; justify-content: center;
-  gap: 10px; flex-wrap: wrap;
+.qc-contact-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  padding: 0.55rem 0.3rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  text-align: center;
+  transition: all var(--t2);
+  cursor: pointer;
 }
-.contact-highlight-badges .fbadge { font-size: 0.56rem; padding: 5px 12px; }
-
+.qc-contact-btn:hover { border-color: var(--gold); background: var(--gold-glow); transform: translateY(-2px); }
+.qc-contact-btn--static { cursor: default; }
+.qc-contact-btn--static:hover { border-color: var(--glass-border2); background: var(--glass-bg); transform: none; }
+.qc-contact-icon { font-size: 0.95rem; line-height: 1; }
+.qc-contact-lbl {
+  font-family: 'Space Mono', monospace; font-size: 0.46rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+  white-space: nowrap;
+}
+.qc-contact-btn:hover .qc-contact-lbl { color: var(--gold-lt); }
 
 .spa-qcard {
   display: flex;
@@ -2424,6 +2427,8 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .hero-metrics { display: none; }
   .review-card { flex: 0 0 100%; }
   .spa-quicknav-grid { grid-template-columns: repeat(2, 1fr); }
+  .spa-qcard--contact { grid-column: 1 / -1; }
+  .qc-contact-grid { grid-template-columns: repeat(6, 1fr); max-width: 480px; margin-inline: auto; }
   /* Cards stay full-size and "side by side" — the row scrolls horizontally
      instead of shrinking the cards down to fit 4 columns in less width. */
   .svc-item-grid {
@@ -2442,8 +2447,6 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .svc-galaxy-wrap { padding: 24px 16px 20px; }
   .footer-contact.info-cards { grid-template-columns: repeat(3, 1fr); }
   .footer-contact-wrap { padding: 1.75rem 1.25rem; }
-  .contact-highlight-grid { grid-template-columns: repeat(2, 1fr); }
-  .contact-highlight-glow { width: 460px; height: 460px; }
   .payment-methods { gap: 6px; }
 }
 
@@ -2466,12 +2469,9 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .footer-contact .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
   .footer-contact .info-val { font-size: 0.74rem; }
   .footer-contact .info-lbl { font-size: 0.44rem; }
-  .contact-highlight-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
-  .contact-highlight-grid .info-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
-  .contact-highlight-grid .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
-  .contact-highlight-grid .info-val { font-size: 0.74rem; }
-  .contact-highlight-grid .info-lbl { font-size: 0.44rem; }
-  .contact-highlight-glow { width: 340px; height: 340px; }
+  .qc-contact-btn { padding: 0.45rem 0.2rem; }
+  .qc-contact-icon { font-size: 0.85rem; }
+  .qc-contact-lbl { font-size: 0.42rem; }
 
   .form-shell { padding: 1.25rem; max-width: 100%; }
   .booking-stepper { gap: 2px; margin-bottom: 1.1rem; }

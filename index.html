@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <button class="nav-cta" id="openContactModal" aria-haspopup="dialog">
+      <button class="nav-cta" id="openContactModal" aria-haspopup="dialog" data-view="services">
         Get a Quote <span class="nav-cta-arrow" aria-hidden="true">→</span>
       </button>
     </nav>
@@ -327,7 +327,7 @@
         for homes and businesses — <strong>guaranteed satisfaction</strong> on every project.
       </p>
       <div class="hero-ctas reveal-fade d3">
-        <button class="btn-primary" id="heroQuoteBtn" aria-haspopup="dialog">
+        <button class="btn-primary" id="heroQuoteBtn" aria-haspopup="dialog" data-view="services">
           <span>Request a Quote</span>
           <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
@@ -355,7 +355,7 @@
   <!-- ── HOME: Quick-nav cards ── -->
   <section class="section spa-quicknav-section">
     <div class="container">
-      <div class="spa-quicknav-grid spa-quicknav-grid--3">
+      <div class="spa-quicknav-grid">
         <button class="spa-qcard glass" data-view="services" aria-label="Go to Services">
           <span class="spa-qcard-icon">🔧</span>
           <span class="spa-qcard-title">Services</span>
@@ -374,57 +374,41 @@
           <span class="spa-qcard-sub">What clients say about us</span>
           <span class="spa-qcard-arrow">→</span>
         </button>
-      </div>
-    </div>
-  </section>
 
-  <!-- ── HOME: Get In Touch — all contact details live here now (moved
-       up from the footer); purely informational, no booking action —
-       booking stays exclusively in the Services section. ── -->
-  <section class="section contact-highlight-section">
-    <div class="contact-highlight-glow" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head sec-head-center reveal">
-        <div class="sec-eyebrow">Reach Us Directly</div>
-        <h2 class="sec-h2">Get In <span class="g-gold">Touch</span></h2>
-        <p class="sec-lead">Six ways to reach FEMIX Plumbing — pick whichever works best for you.</p>
-      </header>
-
-      <div class="contact-highlight-grid reveal">
-        <a href="tel:+2349060708332" class="info-card glass">
-          <div class="info-icon" aria-hidden="true">📞</div>
-          <div class="info-text"><span class="info-lbl">Phone</span><span class="info-val">+234 906 0708 332</span></div>
-          <svg class="info-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a href="mailto:femixplumbingservices931@gmail.com" class="info-card glass">
-          <div class="info-icon" aria-hidden="true">✉️</div>
-          <div class="info-text"><span class="info-lbl">Email</span><span class="info-val">femixplumbingservices931@gmail.com</span></div>
-          <svg class="info-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a href="https://femixplumbing.name.ng" target="_blank" rel="noopener" class="info-card glass">
-          <div class="info-icon" aria-hidden="true">🌐</div>
-          <div class="info-text"><span class="info-lbl">Website</span><span class="info-val">femixplumbing.name.ng</span></div>
-          <svg class="info-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <div class="info-card glass">
-          <div class="info-icon" aria-hidden="true">📍</div>
-          <div class="info-text"><span class="info-lbl">Location</span><span class="info-val">Ile Ife, Osun State, Nigeria</span></div>
+        <!-- Single compact Contact card — all six contact methods live
+             here as small, independently-clickable buttons. Purely
+             informational: no booking action anywhere in this card —
+             booking stays exclusively in the Services section. -->
+        <div class="spa-qcard spa-qcard--contact glass" id="contactCard" aria-label="Contact options">
+          <span class="spa-qcard-icon">💬</span>
+          <span class="spa-qcard-title">Contact</span>
+          <div class="qc-contact-grid">
+            <a href="tel:+2349060708332" class="qc-contact-btn" aria-label="Call +234 906 0708 332">
+              <span class="qc-contact-icon" aria-hidden="true">📞</span>
+              <span class="qc-contact-lbl">Call</span>
+            </a>
+            <a href="mailto:femixplumbingservices931@gmail.com" class="qc-contact-btn" aria-label="Email femixplumbingservices931@gmail.com">
+              <span class="qc-contact-icon" aria-hidden="true">✉️</span>
+              <span class="qc-contact-lbl">Email</span>
+            </a>
+            <a href="https://femixplumbing.name.ng" target="_blank" rel="noopener" class="qc-contact-btn" aria-label="Visit femixplumbing.name.ng">
+              <span class="qc-contact-icon" aria-hidden="true">🌐</span>
+              <span class="qc-contact-lbl">Website</span>
+            </a>
+            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Location: Ile Ife, Osun State, Nigeria">
+              <span class="qc-contact-icon" aria-hidden="true">📍</span>
+              <span class="qc-contact-lbl">Location</span>
+            </div>
+            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Registration: CAC BN–9518216">
+              <span class="qc-contact-icon" aria-hidden="true">🏢</span>
+              <span class="qc-contact-lbl">Reg. No.</span>
+            </div>
+            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Working hours: Monday to Saturday, 7am to 7pm, 24/7 emergency">
+              <span class="qc-contact-icon" aria-hidden="true">🕐</span>
+              <span class="qc-contact-lbl">Hours</span>
+            </div>
+          </div>
         </div>
-        <div class="info-card glass">
-          <div class="info-icon" aria-hidden="true">🏢</div>
-          <div class="info-text"><span class="info-lbl">Registration</span><span class="info-val">CAC BN–9518216</span></div>
-        </div>
-        <div class="info-card glass">
-          <div class="info-icon" aria-hidden="true">🕐</div>
-          <div class="info-text"><span class="info-lbl">Working Hours</span><span class="info-val">Mon–Sat · 7am–7pm · 24/7 Emergency</span></div>
-        </div>
-      </div>
-
-      <div class="contact-highlight-badges reveal">
-        <span class="fbadge">Certified</span>
-        <span class="fbadge">Experienced</span>
-        <span class="fbadge">Registered</span>
-        <span class="fbadge">Licensed &amp; Insured</span>
       </div>
     </div>
   </section>
@@ -494,7 +478,7 @@
           <span class="fnc-label">Reviews</span>
           <svg class="fnc-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="#contact" class="footer-nav-card glass" data-view="contact">
+        <a href="#contactCard" class="footer-nav-card glass">
           <span class="fnc-num">04</span>
           <span class="fnc-label">Contact</span>
           <svg class="fnc-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1164,7 +1148,7 @@
                       </div>
                     </div>
 
-                    <div class="step-actions">
+                    <div class="step-actions" id="step2Actions">
                       <button type="button" class="btn-step btn-step-back" data-step-back>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                         <span>Back</span>
