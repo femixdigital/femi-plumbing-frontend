@@ -2146,7 +2146,7 @@ body {
   align-items: flex-start;
   gap: 0.4rem;
   padding: 1.4rem 1.5rem 1.6rem;
-  border-radius: var(--radius-lg);
+  border-radius: 28px;
   cursor: pointer;
   transition: transform var(--t2), box-shadow var(--t2), border-color var(--t2);
   border: 2px solid var(--glass-border);
@@ -2427,8 +2427,6 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .hero-metrics { display: none; }
   .review-card { flex: 0 0 100%; }
   .spa-quicknav-grid { grid-template-columns: repeat(2, 1fr); }
-  .spa-qcard--contact { grid-column: 1 / -1; }
-  .qc-contact-grid { grid-template-columns: repeat(6, 1fr); max-width: 480px; margin-inline: auto; }
   /* Cards stay full-size and "side by side" — the row scrolls horizontally
      instead of shrinking the cards down to fit 4 columns in less width. */
   .svc-item-grid {
