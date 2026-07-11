@@ -813,24 +813,21 @@ input, textarea, [contenteditable] {
   display: block;
 }
 
-.item-content {
-  max-height: 0; overflow: hidden;
-  transition: max-height 0.4s ease-out, opacity 0.3s ease;
-  opacity: 0; margin-left: 3rem;
-  font-family: 'Space Mono', monospace; font-size: 0.75rem;
-  color: var(--text-muted); border-left: 1px solid var(--gold-lt);
-  padding-left: 15px;
+.menu-sub {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Space Mono', monospace; font-size: 0.68rem;
+  color: var(--text-muted); line-height: 1.5;
 }
-.item-content.active { max-height: 200px; opacity: 1; margin-top: 10px; margin-bottom: 20px; }
 
 .menu-item {
+  display: block; width: 100%; text-align: left; font-family: inherit;
   background: var(--bg-card); border-radius: 12px; padding: 15px;
   margin: 10px 0; cursor: pointer; transition: all 0.3s ease;
   border: 1px solid var(--glass-border);
 }
 .menu-item:hover { background: var(--bg-hover); transform: translateX(6px); border-color: var(--gold); }
 .menu-item:active { transform: scale(0.97); }
-.menu-item.active .item-content { max-height: 200px; }
 
 .item-header { display: flex; justify-content: space-between; align-items: center; }
 .menu-num   { font-size: 12px; color: var(--text-muted); }
@@ -1345,7 +1342,7 @@ input, textarea, [contenteditable] {
 }
 .pay-method {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 0.75rem 0.5rem; border-radius: var(--radius);
+  padding: 0.75rem 0.5rem; border-radius: var(--radius-pill);
   background: var(--glass-bg); border: 1px solid var(--glass-border);
   transition: all var(--t2); text-align: center;
   cursor: pointer; position: relative; width: 100%;
@@ -1360,7 +1357,7 @@ input, textarea, [contenteditable] {
 .pay-method.selected .pay-label { color: var(--text-primary); }
 .pay-method.selected::after {
   content: '✓';
-  position: absolute; top: 4px; right: 6px;
+  position: absolute; top: 7px; right: 9px;
   width: 15px; height: 15px; border-radius: 50%;
   background: var(--grad-gold); color: var(--text-inverse);
   font-size: 0.55rem; font-weight: 900;
@@ -1534,7 +1531,7 @@ input, textarea, [contenteditable] {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   width: 100%; text-align: left;
   background: var(--bg-input); border: 1px solid var(--glass-border);
-  border-radius: var(--radius); padding: 0.68rem 0.9rem;
+  border-radius: var(--radius-pill); padding: 0.68rem 1.1rem;
   font-family: 'Outfit', sans-serif; font-size: 0.85rem;
   cursor: pointer; transition: border-color var(--t1), box-shadow var(--t1);
 }
@@ -1919,6 +1916,10 @@ input, textarea, [contenteditable] {
 /* Prevents the fixed FAB cluster from ever intercepting taps meant for the
    booking wizard's Continue/Back buttons underneath it. */
 body.is-booking-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
+/* The footer's own "Contact" nav card sits near the same bottom-right
+   corner as the fixed WhatsApp/Call bubbles — without this, the FAB's
+   hit area can silently swallow taps meant for that card. */
+body.is-footer-in-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
 .fab {
   width: 48px; height: 48px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -2111,8 +2112,46 @@ body {
 .spa-qcard--contact {
   cursor: default;
   align-items: stretch;
+  padding: 0;
 }
 .spa-qcard--contact .spa-qcard-title { margin-bottom: 0.15rem; }
+
+/* Toggle header — the only thing visible until tapped */
+.qc-contact-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  text-align: left;
+  padding: 1.4rem 1.5rem 1.6rem;
+  cursor: pointer;
+}
+.qc-contact-toggle .spa-qcard-icon { margin-bottom: 0; font-size: 1.75rem; }
+.qc-contact-toggle .spa-qcard-title { margin-bottom: 0; flex: 1; }
+.qc-contact-chevron {
+  flex-shrink: 0; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gold-glow); transition: transform var(--t2), color var(--t2);
+}
+.qc-contact-toggle[aria-expanded="true"] .qc-contact-chevron {
+  transform: rotate(180deg); color: var(--gold);
+}
+
+/* Animated collapse/expand — JS drives the max-height for a smooth,
+   accurate transition instead of guessing a fixed value. */
+.qc-contact-panel {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.32s var(--ease), opacity 0.24s var(--ease);
+  padding: 0 1.5rem;
+}
+.qc-contact-panel.qc-contact-panel--open {
+  opacity: 1;
+  padding: 0 1.5rem 1.6rem;
+}
+
 .qc-contact-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2122,6 +2161,7 @@ body {
 .qc-contact-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px;
+  min-width: 0; /* let the grid track shrink the button instead of overflowing on long labels */
   padding: 0.55rem 0.3rem;
   border-radius: var(--radius-pill);
   background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -2136,7 +2176,10 @@ body {
 .qc-contact-lbl {
   font-family: 'Space Mono', monospace; font-size: 0.46rem;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.25;
 }
 .qc-contact-btn:hover .qc-contact-lbl { color: var(--gold-lt); }
 

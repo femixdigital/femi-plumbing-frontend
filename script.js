@@ -36,6 +36,19 @@ document.addEventListener('visibilitychange', () => {
   document.body.classList.toggle('is-tab-hidden', document.hidden);
 });
 
+// The fixed WhatsApp/Call bubbles sit in the same bottom-right corner as
+// the footer's own "Contact" nav card — fade them out of the way whenever
+// that card scrolls into view so they can never steal its taps.
+(function footerFabClearance() {
+  const footerNav = $('.footer-nav-row');
+  if (!footerNav || !('IntersectionObserver' in window)) return;
+  const obs = new IntersectionObserver(
+    entries => entries.forEach(e => document.body.classList.toggle('is-footer-in-view', e.isIntersecting)),
+    { rootMargin: '0px 0px -20% 0px', threshold: 0.15 }
+  );
+  obs.observe(footerNav);
+})();
+
 /* ════════════════════════════════════════════════════
    1. LOADER
    Shows just long enough to read as intentional, then
@@ -295,12 +308,14 @@ hamBtn?.addEventListener('click', () =>
 overlay?.addEventListener('click', closeDrawer);
 $('#closeDrawer')?.addEventListener('click', closeDrawer);
 
-function toggleContent(id) {
-  $$('.item-content').forEach(c => {
-    c.classList.toggle('active', c.id === id ? !c.classList.contains('active') : false);
-  });
-}
-window.toggleContent = toggleContent;
+// Drawer's "Contact" item: always take the visitor home, then bring the
+// on-page Contact card into view — works whether they opened the drawer
+// from Home or from any other view.
+$('#drawerContactBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    document.getElementById('contactCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, currentView === 'home' ? 50 : 420);
+});
 
 /* ════════════════════════════════════════════════════
    8. ★ SPA ROUTER ★
@@ -601,6 +616,59 @@ const BookingWizard = (function () {
       btn.setAttribute('aria-checked', 'true');
       hidden.value = btn.dataset.method || '';
     });
+  });
+})();
+
+/* ════════════════════════════════════════════════════
+   10a-1. CONTACT CARD TOGGLE
+   Collapsed by default (just the "Contact" label) —
+   expands to reveal the six contact methods on click.
+   Height is measured with scrollHeight so the open/close
+   transition is smooth and accurate at any content size.
+════════════════════════════════════════════════════ */
+(function contactCardToggle() {
+  const toggle = $('#contactToggle');
+  const panel  = $('#contactPanel');
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+
+    if (isOpen) {
+      // Collapse: measure current height first so the browser has a
+      // concrete starting point to animate down from (not "auto").
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      requestAnimationFrame(() => {
+        panel.classList.remove('qc-contact-panel--open');
+        panel.style.maxHeight = '0px';
+      });
+      toggle.setAttribute('aria-expanded', 'false');
+      panel.addEventListener('transitionend', function onEnd(e) {
+        if (e.propertyName !== 'max-height') return;
+        panel.hidden = true;
+        panel.removeEventListener('transitionend', onEnd);
+      });
+    } else {
+      panel.hidden = false;
+      panel.style.maxHeight = '0px';
+      requestAnimationFrame(() => {
+        panel.classList.add('qc-contact-panel--open');
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      });
+      toggle.setAttribute('aria-expanded', 'true');
+      panel.addEventListener('transitionend', function onEnd(e) {
+        if (e.propertyName !== 'max-height') return;
+        panel.style.maxHeight = 'none'; // let it breathe if content reflows (resize, etc.)
+        panel.removeEventListener('transitionend', onEnd);
+      });
+    }
+  });
+
+  // If the viewport resizes while open, "none" keeps it correct; if it's
+  // mid-animation this is harmless since scrollHeight is re-measured on
+  // every open.
+  window.addEventListener('resize', () => {
+    if (toggle.getAttribute('aria-expanded') === 'true') panel.style.maxHeight = 'none';
   });
 })();
 

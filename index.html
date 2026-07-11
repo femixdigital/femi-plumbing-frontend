@@ -192,55 +192,41 @@
       <button class="mob-drawer-close" id="closeDrawer" aria-label="Close menu">✕</button>
     </div>
     <div class="full-menu">
-      <div class="menu-item" onclick="toggleContent('home-info')">
-        <div class="item-header">
+      <button type="button" class="menu-item" data-view="home">
+        <span class="item-header">
           <span class="menu-num">01</span>
           <span class="menu-label">HOME</span>
-        </div>
-        <div id="home-info" class="item-content">
-          <p>Professional Plumbing & Water Engineering Solutions. Certified • Experienced • Registered. Est. since 2019.</p>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toggleContent('services-info')">
-        <div class="item-header">
+        </span>
+        <span class="menu-sub">Professional Plumbing &amp; Water Engineering Solutions</span>
+      </button>
+      <button type="button" class="menu-item" data-view="services">
+        <span class="item-header">
           <span class="menu-num">02</span>
           <span class="menu-label">SERVICES</span>
-        </div>
-        <div id="services-info" class="item-content">
-          <ul>
-            <li>General Plumbing & Repairs</li>
-            <li>Industrial Pipe Fitting</li>
-            <li>Borehole Installation</li>
-          </ul>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toggleContent('about-info')">
-        <div class="item-header">
+        </span>
+        <span class="menu-sub">General plumbing, pipe fitting &amp; borehole installation</span>
+      </button>
+      <button type="button" class="menu-item" data-view="about">
+        <span class="item-header">
           <span class="menu-num">03</span>
           <span class="menu-label">ABOUT</span>
-        </div>
-        <div id="about-info" class="item-content">
-          <p>Expert plumbing artisan based in Ile-Ife. Certified technical excellence for your home and business.</p>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toggleContent('reviews-info')">
-        <div class="item-header">
+        </span>
+        <span class="menu-sub">Certified technical excellence for home &amp; business</span>
+      </button>
+      <button type="button" class="menu-item" data-view="reviews">
+        <span class="item-header">
           <span class="menu-num">04</span>
           <span class="menu-label">REVIEWS</span>
-        </div>
-        <div id="reviews-info" class="item-content">
-          <p>⭐⭐⭐⭐⭐ "Best plumbing service in Osun State!" — Tunde A.</p>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toggleContent('contact-info')">
-        <div class="item-header">
+        </span>
+        <span class="menu-sub">⭐⭐⭐⭐⭐ "Best plumbing service in Osun State!"</span>
+      </button>
+      <button type="button" class="menu-item" id="drawerContactBtn" data-view="home">
+        <span class="item-header">
           <span class="menu-num">05</span>
           <span class="menu-label">CONTACT</span>
-        </div>
-        <div id="contact-info" class="item-content">
-          <p>📞 +234 906 0708 332<br>📍 Ile-Ife, Osun State<br>🌐 femixplumbing.name.ng</p>
-        </div>
-      </div>
+        </span>
+        <span class="menu-sub">Phone, email, location &amp; working hours</span>
+      </button>
     </div>
     <div class="mob-drawer-actions">
       <a href="tel:+2349060708332" class="mob-action-btn mob-action-call">
@@ -375,37 +361,45 @@
           <span class="spa-qcard-arrow">→</span>
         </button>
 
-        <!-- Single compact Contact card — all six contact methods live
-             here as small, independently-clickable buttons. Purely
-             informational: no booking action anywhere in this card —
-             booking stays exclusively in the Services section. -->
-        <div class="spa-qcard spa-qcard--contact glass" id="contactCard" aria-label="Contact options">
-          <span class="spa-qcard-icon">💬</span>
-          <span class="spa-qcard-title">Contact</span>
-          <div class="qc-contact-grid">
-            <a href="tel:+2349060708332" class="qc-contact-btn" aria-label="Call +234 906 0708 332">
-              <span class="qc-contact-icon" aria-hidden="true">📞</span>
-              <span class="qc-contact-lbl">Call</span>
-            </a>
-            <a href="mailto:femixplumbingservices931@gmail.com" class="qc-contact-btn" aria-label="Email femixplumbingservices931@gmail.com">
-              <span class="qc-contact-icon" aria-hidden="true">✉️</span>
-              <span class="qc-contact-lbl">Email</span>
-            </a>
-            <a href="https://femixplumbing.name.ng" target="_blank" rel="noopener" class="qc-contact-btn" aria-label="Visit femixplumbing.name.ng">
-              <span class="qc-contact-icon" aria-hidden="true">🌐</span>
-              <span class="qc-contact-lbl">Website</span>
-            </a>
-            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Location: Ile Ife, Osun State, Nigeria">
-              <span class="qc-contact-icon" aria-hidden="true">📍</span>
-              <span class="qc-contact-lbl">Location</span>
-            </div>
-            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Registration: CAC BN–9518216">
-              <span class="qc-contact-icon" aria-hidden="true">🏢</span>
-              <span class="qc-contact-lbl">Reg. No.</span>
-            </div>
-            <div class="qc-contact-btn qc-contact-btn--static" aria-label="Working hours: Monday to Saturday, 7am to 7pm, 24/7 emergency">
-              <span class="qc-contact-icon" aria-hidden="true">🕐</span>
-              <span class="qc-contact-lbl">Hours</span>
+        <!-- Single compact Contact card — collapsed by default (shows just
+             "Contact"); tapping it reveals the six contact methods, each
+             independently clickable. Purely informational: no booking
+             action anywhere in this card — booking stays exclusively in
+             the Services section. -->
+        <div class="spa-qcard spa-qcard--contact glass" id="contactCard">
+          <button type="button" class="qc-contact-toggle" id="contactToggle" aria-expanded="false" aria-controls="contactPanel">
+            <span class="spa-qcard-icon">💬</span>
+            <span class="spa-qcard-title">Contact</span>
+            <span class="qc-contact-chevron" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+            </span>
+          </button>
+          <div class="qc-contact-panel" id="contactPanel" role="region" aria-label="Contact options" hidden>
+            <div class="qc-contact-grid">
+              <a href="tel:+2349060708332" class="qc-contact-btn" aria-label="Call +234 906 0708 332">
+                <span class="qc-contact-icon" aria-hidden="true">📞</span>
+                <span class="qc-contact-lbl">Call</span>
+              </a>
+              <a href="mailto:femixplumbingservices931@gmail.com" class="qc-contact-btn" aria-label="Email femixplumbingservices931@gmail.com">
+                <span class="qc-contact-icon" aria-hidden="true">✉️</span>
+                <span class="qc-contact-lbl">Email</span>
+              </a>
+              <a href="https://femixplumbing.name.ng" target="_blank" rel="noopener" class="qc-contact-btn" aria-label="Visit femixplumbing.name.ng">
+                <span class="qc-contact-icon" aria-hidden="true">🌐</span>
+                <span class="qc-contact-lbl">Website</span>
+              </a>
+              <div class="qc-contact-btn qc-contact-btn--static" aria-label="Location: Ile Ife, Osun State, Nigeria">
+                <span class="qc-contact-icon" aria-hidden="true">📍</span>
+                <span class="qc-contact-lbl">Location</span>
+              </div>
+              <div class="qc-contact-btn qc-contact-btn--static" aria-label="Registration: CAC BN–9518216">
+                <span class="qc-contact-icon" aria-hidden="true">🏢</span>
+                <span class="qc-contact-lbl">Reg. No.</span>
+              </div>
+              <div class="qc-contact-btn qc-contact-btn--static" aria-label="Working hours: Monday to Saturday, 7am to 7pm, 24/7 emergency">
+                <span class="qc-contact-icon" aria-hidden="true">🕐</span>
+                <span class="qc-contact-lbl">Hours</span>
+              </div>
             </div>
           </div>
         </div>
