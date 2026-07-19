@@ -1018,8 +1018,295 @@ function playChime() {
 })();
 
 /* ════════════════════════════════════════════════════
+   15b. MEDIA ATTACHMENTS — voice note, video, photos
+   Optional multimedia for the booking's Confirm step.
+   Everything captured here is converted to base64 and
+   travels inside the same JSON payload the booking form
+   already sends — no backend format change required for
+   the existing text fields, which keep working exactly
+   as before. Size/duration caps keep the request sane.
+════════════════════════════════════════════════════ */
+const MediaAttachments = (function () {
+  const LIMITS = {
+    imageMaxBytes: 3 * 1024 * 1024,   // 3MB per photo — matches backend ATTACHMENT_LIMITS.image
+    imageMaxCount: 4,
+    videoMaxBytes: 10 * 1024 * 1024,  // 10MB — matches backend ATTACHMENT_LIMITS.video
+    audioMaxSeconds: 60,              // cap for in-browser recording
+    audioMaxBytes: 8 * 1024 * 1024    // cap for uploaded audio files — matches backend ATTACHMENT_LIMITS.voice
+  };
+
+  let voiceBlob = null;
+  let videoFile = null;
+  let images = []; // [{ file, dataUrl }]
+
+  const voiceBtn        = $('#voiceRecBtn');
+  const voiceTime       = $('#voiceRecTime');
+  const voicePrev       = $('#voicePreview');
+  const voiceAudio      = $('#voiceAudioEl');
+  const voiceRemoveBtn  = $('#voiceRemoveBtn');
+  const voiceRecorderEl = $('#voiceRecorder');
+  const voiceUploadRow  = $('#voiceUploadRow');
+  const voiceUploadInput = $('#voiceUploadInput');
+
+  const videoCaptureInput = $('#videoCaptureInput');
+  const videoUploadInput  = $('#videoUploadInput');
+  const videoPreview      = $('#videoPreview');
+  const videoPreviewEl    = $('#videoPreviewEl');
+  const videoMeta         = $('#videoMeta');
+  const videoRemoveBtn    = $('#videoRemoveBtn');
+  const videoActions      = $('#videoActions');
+
+  const imageCaptureInput = $('#imageCaptureInput');
+  const imageUploadInput  = $('#imageUploadInput');
+  const imageGrid         = $('#imagePreviewGrid');
+
+  /* ---------- helpers ---------- */
+  function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+  }
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(0) + ' KB';
+    return (n / 1024 / 1024).toFixed(1) + ' MB';
+  }
+  function fmtTime(sec) {
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  /* ---------- voice recording ---------- */
+  let mediaRecorder = null, recChunks = [], recStream = null, recTimer = null, recStart = 0;
+
+  async function startRecording() {
+    if (!window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
+      Toast.error('Not supported', "Voice recording isn't supported in this browser.");
+      return;
+    }
+    try {
+      recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
+        Toast.error('Microphone blocked', "This browser/app has no mic access — use \"Upload Audio\" below instead, or check your browser's site permissions.");
+      } else if (err?.name === 'NotFoundError') {
+        Toast.error('No microphone found', 'Try "Upload Audio" below instead.');
+      } else {
+        Toast.error('Microphone unavailable', 'Try "Upload Audio" below instead.');
+      }
+      return;
+    }
+    recChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    mediaRecorder = new MediaRecorder(recStream, mimeType ? { mimeType } : undefined);
+    mediaRecorder.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
+    mediaRecorder.onstop = onRecordingStop;
+    mediaRecorder.start();
+    recStart = Date.now();
+    voiceBtn?.classList.add('recording');
+    recTimer = setInterval(() => {
+      const elapsed = (Date.now() - recStart) / 1000;
+      if (voiceTime) voiceTime.textContent = fmtTime(elapsed) + ' / 1:00';
+      if (elapsed >= LIMITS.audioMaxSeconds) stopRecording();
+    }, 200);
+  }
+
+  function stopRecording() {
+    clearInterval(recTimer);
+    voiceBtn?.classList.remove('recording');
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    recStream?.getTracks().forEach(t => t.stop());
+  }
+
+  function onRecordingStop() {
+    const blob = new Blob(recChunks, { type: recChunks[0]?.type || 'audio/webm' });
+    if (blob.size < 500) {
+      Toast.error('Too short', 'That recording was too short — try again.');
+      resetVoiceUI();
+      return;
+    }
+    voiceBlob = blob;
+    if (voiceAudio) voiceAudio.src = URL.createObjectURL(blob);
+    showVoicePreview();
+  }
+
+  function showVoicePreview() {
+    if (voicePrev) voicePrev.hidden = false;
+    if (voiceRecorderEl) voiceRecorderEl.hidden = true;
+    if (voiceUploadRow) voiceUploadRow.hidden = true;
+  }
+
+  function resetVoiceUI() {
+    voiceBlob = null;
+    if (voicePrev) voicePrev.hidden = true;
+    if (voiceRecorderEl) voiceRecorderEl.hidden = false;
+    if (voiceUploadRow) voiceUploadRow.hidden = false;
+    if (voiceTime) voiceTime.textContent = 'Tap to record';
+    if (voiceUploadInput) voiceUploadInput.value = '';
+  }
+
+  voiceBtn?.addEventListener('click', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+    else startRecording();
+  });
+  voiceRemoveBtn?.addEventListener('click', resetVoiceUI);
+
+  // Fallback for when in-browser recording isn't available (blocked mic,
+  // unsupported WebView, etc.) — attach an audio file recorded elsewhere.
+  voiceUploadInput?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('audio/')) {
+      Toast.error('Unsupported file', 'Please choose an audio file.');
+      return;
+    }
+    if (file.size > LIMITS.audioMaxBytes) {
+      Toast.error('Audio too large', `Please keep voice notes under ${fmtBytes(LIMITS.audioMaxBytes)}.`);
+      return;
+    }
+    voiceBlob = file;
+    if (voiceAudio) voiceAudio.src = URL.createObjectURL(file);
+    showVoicePreview();
+  });
+
+  /* ---------- video ---------- */
+  function handleVideoFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      Toast.error('Unsupported file', 'Please choose a video file.');
+      return;
+    }
+    if (file.size > LIMITS.videoMaxBytes) {
+      Toast.error('Video too large', `Please keep videos under ${fmtBytes(LIMITS.videoMaxBytes)}.`);
+      return;
+    }
+    videoFile = file;
+    if (videoPreviewEl) videoPreviewEl.src = URL.createObjectURL(file);
+    if (videoMeta) videoMeta.textContent = `${file.name} · ${fmtBytes(file.size)}`;
+    if (videoPreview) videoPreview.hidden = false;
+    if (videoActions) videoActions.hidden = true;
+  }
+  videoCaptureInput?.addEventListener('change', e => handleVideoFile(e.target.files[0]));
+  videoUploadInput?.addEventListener('change', e => handleVideoFile(e.target.files[0]));
+  videoRemoveBtn?.addEventListener('click', () => {
+    videoFile = null;
+    if (videoPreviewEl) videoPreviewEl.src = '';
+    if (videoPreview) videoPreview.hidden = true;
+    if (videoActions) videoActions.hidden = false;
+    if (videoCaptureInput) videoCaptureInput.value = '';
+    if (videoUploadInput) videoUploadInput.value = '';
+  });
+
+  /* ---------- images ---------- */
+  function renderImageGrid() {
+    if (!imageGrid) return;
+    imageGrid.innerHTML = '';
+    images.forEach((img, i) => {
+      const div = document.createElement('div');
+      div.className = 'img-thumb';
+      div.innerHTML = `<img src="${img.dataUrl}" alt="Attached photo ${i + 1}">` +
+        `<button type="button" class="attach-remove" aria-label="Remove photo ${i + 1}">✕</button>`;
+      div.querySelector('.attach-remove').addEventListener('click', () => {
+        images.splice(i, 1);
+        renderImageGrid();
+      });
+      imageGrid.appendChild(div);
+    });
+  }
+
+  async function handleImageFiles(fileList) {
+    for (const file of [...fileList]) {
+      if (images.length >= LIMITS.imageMaxCount) {
+        Toast.error('Limit reached', `You can attach up to ${LIMITS.imageMaxCount} photos.`);
+        break;
+      }
+      if (!file.type.startsWith('image/')) {
+        Toast.error('Unsupported file', `${file.name} isn't an image.`);
+        continue;
+      }
+      if (file.size > LIMITS.imageMaxBytes) {
+        Toast.error('Photo too large', `${file.name} is over ${fmtBytes(LIMITS.imageMaxBytes)}.`);
+        continue;
+      }
+      try {
+        const dataUrl = await fileToDataUrl(file);
+        images.push({ file, dataUrl });
+      } catch {
+        Toast.error('Read error', `Couldn't read ${file.name}.`);
+      }
+    }
+    renderImageGrid();
+  }
+  imageCaptureInput?.addEventListener('change', e => { handleImageFiles(e.target.files); e.target.value = ''; });
+  imageUploadInput?.addEventListener('change', e => { handleImageFiles(e.target.files); e.target.value = ''; });
+
+  /* ---------- collect + reset (used by the form-submit handler) ---------- */
+  async function collect() {
+    const attachments = [];
+    if (voiceBlob) {
+      attachments.push({
+        kind: 'voice', name: 'voice-note.webm', type: voiceBlob.type, size: voiceBlob.size,
+        data: await fileToDataUrl(voiceBlob)
+      });
+    }
+    if (videoFile) {
+      attachments.push({
+        kind: 'video', name: videoFile.name, type: videoFile.type, size: videoFile.size,
+        data: await fileToDataUrl(videoFile)
+      });
+    }
+    for (const img of images) {
+      attachments.push({ kind: 'image', name: img.file.name, type: img.file.type, size: img.file.size, data: img.dataUrl });
+    }
+    return attachments;
+  }
+
+  function reset() {
+    resetVoiceUI();
+    videoFile = null;
+    if (videoPreviewEl) videoPreviewEl.src = '';
+    if (videoPreview) videoPreview.hidden = true;
+    if (videoActions) videoActions.hidden = false;
+    if (videoCaptureInput) videoCaptureInput.value = '';
+    if (videoUploadInput) videoUploadInput.value = '';
+    images = [];
+    renderImageGrid();
+  }
+
+  function hasAttachments() {
+    return !!voiceBlob || !!videoFile || images.length > 0;
+  }
+
+  return { collect, reset, hasAttachments };
+})();
+
+/* ════════════════════════════════════════════════════
    16. FORM SUBMIT
 ════════════════════════════════════════════════════ */
+/* XHR wrapper (instead of fetch) purely so we can report real upload
+   progress — handy now that a booking can carry photos/video/audio. */
+function postJSONWithProgress(url, payload, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      let body = null;
+      try { body = JSON.parse(xhr.responseText); } catch { /* non-JSON response */ }
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, body });
+    };
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
 async function handleForm(form, btn) {
   // ── Client-side validation ──
   const invalids = [...form.querySelectorAll(':invalid')];
@@ -1037,13 +1324,24 @@ async function handleForm(form, btn) {
     return;
   }
 
+  const progressWrap = $('#uploadProgress');
+  const progressFill = $('#uploadProgressFill');
+
   // ── Loading state — a plain inline spinner, no "server" talk ──
   const orig = btn.innerHTML;
-  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Booking your service…</span>';
+  const hasMedia = MediaAttachments.hasAttachments();
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>' +
+    (hasMedia ? 'Uploading & booking…' : 'Booking your service…') + '</span>';
   btn.disabled  = true;
+
+  if (hasMedia && progressWrap) {
+    progressWrap.hidden = false;
+    progressFill.style.width = '0%';
+  }
 
   try {
     const fd = new FormData(form);
+    const attachments = await MediaAttachments.collect();
     const payload = {
       name:    fd.get('name')           || '',
       phone:   fd.get('phone')          || '',
@@ -1053,17 +1351,13 @@ async function handleForm(form, btn) {
       time:    fd.get('preferred_time') || '',
       email:   fd.get('email')          || '',
       message: fd.get('message')        || '',
-      payment_method: fd.get('payment_method') || ''
+      payment_method: fd.get('payment_method') || '',
+      attachments // [] when nothing was attached — existing bookings unaffected
     };
 
-    // ── POST to backend ──
-    const r = await fetch(BACKEND_URL, {
-      method:  'POST',
-      body:    JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept':       'application/json'
-      }
+    // ── POST to backend (XHR so we can show real upload progress) ──
+    const r = await postJSONWithProgress(BACKEND_URL, payload, pct => {
+      if (progressFill) progressFill.style.width = pct + '%';
     });
 
     if (r.ok) {
@@ -1077,6 +1371,8 @@ async function handleForm(form, btn) {
       // ★ Back to step 1 for the next visitor / next booking
       BookingWizard.reset();
       ServiceSelect.reset();
+      MediaAttachments.reset();
+      if (progressWrap) progressWrap.hidden = true;
 
       // Visually reset payment method selection to match the hidden field's
       // reset value (form.reset() reverts the value but not our own classes)
@@ -1100,17 +1396,15 @@ async function handleForm(form, btn) {
 
     } else {
       // Server returned non-2xx
-      let serverMsg = 'Please try again or call us directly.';
-      try {
-        const errBody = await r.json();
-        if (errBody?.message) serverMsg = errBody.message;
-      } catch { /* ignore parse error */ }
+      const serverMsg = r.body?.message || 'Please try again or call us directly.';
       Toast.error('Send failed', serverMsg);
+      if (progressWrap) progressWrap.hidden = true;
     }
 
   } catch (networkErr) {
     console.error('Fetch error:', networkErr);
     Toast.error('Network error', 'Please check your connection and try again.');
+    if (progressWrap) progressWrap.hidden = true;
   } finally {
     btn.innerHTML = orig;
     btn.disabled  = false;

@@ -1409,11 +1409,11 @@ input, textarea, [contenteditable] {
 }
 .bstep {
   display: flex; flex-direction: column; align-items: center; gap: 5px;
-  background: none; border: none; cursor: pointer; flex-shrink: 0;
+  background: none; border: none; cursor: pointer; min-width: 0;
   padding: 2px; transition: opacity var(--t2);
 }
 .bstep-num {
-  width: 26px; height: 26px; border-radius: 50%;
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.72rem;
   color: var(--text-muted); background: var(--glass-bg);
@@ -1424,6 +1424,7 @@ input, textarea, [contenteditable] {
   font-family: 'Space Mono', monospace; font-size: 0.46rem;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
   transition: color var(--t2); white-space: nowrap;
+  max-width: 58px; overflow: hidden; text-overflow: ellipsis;
 }
 .bstep.active .bstep-num {
   background: var(--grad-gold); border-color: transparent; color: var(--text-inverse);
@@ -1634,6 +1635,147 @@ input, textarea, [contenteditable] {
 .form-privacy {
   font-family: 'Space Mono', monospace; font-size: 0.52rem;
   color: var(--text-muted); text-align: center; margin-top: 0.65rem; letter-spacing: 0.04em;
+}
+
+/* ──────────────────────────────────────────
+   MULTIMEDIA ATTACHMENTS — voice note, video,
+   photos. All optional; everything is base64-
+   encoded client-side and travels inside the
+   same booking payload the form already sends.
+────────────────────────────────────────── */
+.field-optional {
+  font-weight: 400; text-transform: none; letter-spacing: 0;
+  color: var(--text-muted); font-family: 'Outfit', sans-serif; font-size: 0.68rem;
+}
+.attach-field { gap: 10px; }
+.attach-block {
+  background: var(--bg-input); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl); padding: 1rem 1.1rem;
+  margin-bottom: 10px;
+  position: relative; overflow: hidden;
+  transition: border-color var(--t2);
+}
+.attach-block::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold); opacity: 0.5;
+}
+.attach-block:focus-within { border-color: var(--glass-border2); }
+.attach-block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 0.7rem; }
+.attach-icon { font-size: 1rem; flex-shrink: 0; }
+.attach-block-title {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem;
+  color: var(--text-primary); flex: 1;
+}
+.attach-block-hint {
+  font-family: 'Space Mono', monospace; font-size: 0.5rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+}
+.attach-hint {
+  font-size: 0.68rem; color: var(--text-muted); line-height: 1.6; margin-top: 2px;
+}
+
+/* Voice recorder */
+.voice-recorder { display: flex; align-items: center; gap: 12px; }
+.voice-rec-btn {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--glass-bg); border: 1.5px solid var(--glass-border2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--t2);
+}
+.voice-rec-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--red); transition: all var(--t2);
+}
+.voice-rec-btn:hover { border-color: var(--red); }
+.voice-rec-btn.recording {
+  border-color: var(--red); background: rgba(240,64,64,0.1);
+  animation: voiceRecPulse 1.4s ease-in-out infinite;
+}
+.voice-rec-btn.recording .voice-rec-dot { border-radius: 4px; width: 14px; height: 14px; }
+@keyframes voiceRecPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,64,64,0.4); }
+  50%     { box-shadow: 0 0 0 8px rgba(240,64,64,0); }
+}
+.voice-rec-time {
+  font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--text-secondary);
+}
+.voice-preview { display: flex; align-items: center; gap: 10px; }
+.voice-preview audio { flex: 1; height: 34px; }
+.voice-preview audio::-webkit-media-controls-panel { background: var(--bg-input); }
+
+/* Fallback path for when the browser/host app has no microphone
+   permission — lets someone attach a voice memo recorded in their
+   phone's own voice-recorder app instead. */
+.voice-upload-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 0.6rem;
+}
+.or-inline {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* Shared remove button (voice / video) */
+.attach-remove {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(240,64,64,0.12); border: 1px solid rgba(240,64,64,0.3);
+  color: var(--red); font-size: 0.7rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--t1);
+}
+.attach-remove:hover { background: rgba(240,64,64,0.22); }
+
+/* Pick buttons (Record / Upload / Camera / Choose Photos) */
+.attach-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.attach-pick-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem;
+  color: var(--text-secondary);
+  background: var(--glass-bg); border: 1px solid var(--glass-border2);
+  padding: 0.5rem 0.95rem; border-radius: var(--radius-pill);
+  cursor: pointer; transition: all var(--t2);
+}
+.attach-pick-btn:hover { border-color: var(--gold); color: var(--gold-lt); background: var(--gold-glow); }
+
+/* Video preview */
+.video-preview { margin-top: 0.7rem; position: relative; }
+.video-preview video {
+  width: 100%; max-height: 220px; border-radius: var(--radius); background: #000;
+  display: block;
+}
+.video-preview .attach-remove, .voice-preview .attach-remove { position: static; }
+.video-preview .attach-remove {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(7,10,20,0.72); backdrop-filter: blur(6px);
+}
+.attach-meta {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem;
+  color: var(--text-muted); margin-top: 4px;
+}
+
+/* Image thumbnail grid */
+.image-preview-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px; margin-top: 0.7rem;
+}
+.image-preview-grid:empty { display: none; }
+.img-thumb {
+  position: relative; aspect-ratio: 1; border-radius: var(--radius);
+  overflow: hidden; border: 1px solid var(--glass-border);
+}
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.img-thumb .attach-remove {
+  position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; font-size: 0.6rem;
+  background: rgba(7,10,20,0.72); backdrop-filter: blur(6px);
+}
+
+/* Upload progress bar (shown during submission) */
+.upload-progress {
+  height: 4px; border-radius: 2px; background: var(--glass-border);
+  overflow: hidden; margin-top: 0.6rem;
+}
+.upload-progress-fill {
+  height: 100%; width: 0%; background: var(--grad-gold);
+  transition: width 0.2s linear;
 }
 
 .site-footer {
@@ -1916,6 +2058,10 @@ input, textarea, [contenteditable] {
 /* Prevents the fixed FAB cluster from ever intercepting taps meant for the
    booking wizard's Continue/Back buttons underneath it. */
 body.is-booking-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
+/* The bottom-left theme toggle can sit at the same height as the booking
+   form's submit button on short screens, partly covering it — fade it
+   out of the way while the booking view is open, same as the FAB cluster. */
+body.is-booking-view .theme-switch { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
 /* The footer's own "Contact" nav card sits near the same bottom-right
    corner as the fixed WhatsApp/Call bubbles — without this, the FAB's
    hit area can silently swallow taps meant for that card. */
@@ -1950,6 +2096,7 @@ body.is-footer-in-view .fab-cluster { opacity: 0; transform: translateY(12px) sc
   background: var(--bg-card); border: 0.5px solid var(--glass-border2);
   border-radius: var(--radius-pill); padding: 1px; box-shadow: var(--sh-sm);
   backdrop-filter: blur(16px);
+  transition: opacity var(--t2), transform var(--t2);
 }
 .ts-btn {
   width: 32px; height: 32px; border-radius: 50%;
@@ -2493,6 +2640,10 @@ body.is-tab-hidden .svc-galaxy-stars--far {
 
 @media (max-width: 640px) {
   .hero-h1 { font-size: clamp(2.2rem, 8vw, 3.2rem); }
+  .attach-block { padding: 0.7rem 0.75rem; }
+  .attach-pick-btn { font-size: 0.68rem; padding: 0.45rem 0.8rem; }
+  .image-preview-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
+  .video-preview video { max-height: 180px; }
   .hero-stats { flex-wrap: nowrap; width: 100%; justify-content: space-between; }
   .hstat { padding: 0.7rem 0.5rem; flex: 1 1 0; }
   .hstat-val { font-size: 1.25rem; }
@@ -2508,82 +2659,4 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .footer-contact-bg .fsg-tile { width: 140px; }
   .footer-contact .info-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
   .footer-contact .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
-  .footer-contact .info-val { font-size: 0.74rem; }
-  .footer-contact .info-lbl { font-size: 0.44rem; }
-  .qc-contact-btn { padding: 0.45rem 0.2rem; }
-  .qc-contact-icon { font-size: 0.85rem; }
-  .qc-contact-lbl { font-size: 0.42rem; }
-
-  .form-shell { padding: 1.25rem; max-width: 100%; }
-  .booking-stepper { gap: 2px; margin-bottom: 1.1rem; }
-  .bstep-num { width: 22px; height: 22px; font-size: 0.62rem; }
-  .bstep-label { font-size: 0.4rem; }
-  .bstep-line { margin-bottom: 12px; }
-  .booking-steps-wrap { min-height: 230px; }
-  .btn-step { padding: 0.56rem 0.9rem; font-size: 0.7rem; }
-  .form-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .field { gap: 4px; margin-bottom: 8px; }
-  .field label { font-size: 0.46rem; }
-  .field input,
-  .field select,
-  .field textarea { padding: 0.55rem 0.7rem; font-size: 0.8rem; }
-  .field-input-wrap input { padding-right: 1.8rem; }
-  .field-check { width: 15px; height: 15px; right: 0.55rem; }
-  .field textarea { height: 56px; }
-  .form-shell-head { margin-bottom: 1rem; }
-  .or-divider { margin: 0.65rem 0 0.5rem; }
-  .btn-primary.btn-block { padding: 0.68rem 1.5rem; margin-top: 0.6rem; }
-  .wa-btn { padding: 0.6rem; }
-  .form-privacy { margin-top: 0.45rem; }
-  .fab-cluster { bottom: 1.25rem; right: 1.25rem; }
-  .theme-switch { bottom: 1.25rem; left: 1.25rem; }
-  .cert-grid { grid-template-columns: 1fr; }
-  .hero-ctas { flex-direction: column; align-items: stretch; }
-  .hero-ctas > * { justify-content: center; }
-  .svc-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .svc-tabs::-webkit-scrollbar { display: none; }
-  .emg-actions { flex-direction: column; }
-  .btn-emg, .btn-emg-wa { justify-content: center; }
-  .service-grid { grid-template-columns: 1fr; }
-  .row-2 { grid-template-columns: 1fr; }
-  .svc-item-grid { grid-auto-columns: 200px; gap: 12px; }
-  .svc-item-btn { min-height: 176px; padding: 18px 16px 14px; gap: 10px; border-radius: 16px; }
-  .svc-item-icon { width: 44px; height: 44px; font-size: 1.3rem; border-radius: 12px; }
-  .svc-item-text { font-size: 0.86rem; line-height: 1.32; }
-  .svc-item-arrow { width: 24px; height: 24px; font-size: 0.68rem; top: 14px; right: 14px; }
-  .svc-galaxy-wrap { padding: 18px 12px 16px; border-radius: 20px; }
-  .payment-methods { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .pay-method { padding: 0.6rem 0.3rem; }
-  .pay-icon { font-size: 1.1rem; }
-  .pay-label { font-size: 0.58rem; }
-  .payment-card { padding: 1.1rem 1rem 1.2rem; }
-}
-
-@media (max-width: 400px) {
-  .nav-bar { padding: 0 1rem; }
-  .logo-name { font-size: 1rem; }
-  .form-row { grid-template-columns: 1fr; }
-  .bstep-label { display: none; }
-  .bstep-num { width: 24px; height: 24px; }
-}
-
-@media (max-width: 540px) {
-  .spa-quicknav-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-  .spa-qcard {
-    padding: 1.1rem 1rem;
-  }
-  .spa-qcard-icon { font-size: 2.1rem; }
-  .spa-view-header {
-    padding: 0.75rem 1rem 0.25rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .spa-quicknav-grid { grid-template-columns: 1fr; }
-  .svc-item-grid { grid-auto-columns: 178px; gap: 10px; }
-  .svc-item-btn { min-height: 160px; padding: 15px 13px 12px; border-radius: 14px; }
-  .svc-item-text { font-size: 0.78rem; }
-}
+  .footer-contact .

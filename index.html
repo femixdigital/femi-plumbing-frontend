@@ -1205,6 +1205,81 @@
                       <textarea id="fmsg" name="message" placeholder="Describe the nature of your plumbing work here…" required></textarea>
                     </div>
 
+                    <!-- ── Multimedia attachments — voice note, video, photos.
+                         All optional, all sent along with the booking. ── -->
+                    <div class="field attach-field">
+                      <label>Show Us The Problem <span class="field-optional">(optional)</span></label>
+
+                      <div class="attach-block" id="voiceBlock">
+                        <div class="attach-block-head">
+                          <span class="attach-icon" aria-hidden="true">🎙️</span>
+                          <span class="attach-block-title">Voice Note</span>
+                          <span class="attach-block-hint" id="voiceRecHint">Max 60s</span>
+                        </div>
+                        <div class="voice-recorder" id="voiceRecorder">
+                          <button type="button" class="voice-rec-btn" id="voiceRecBtn" aria-label="Record voice note">
+                            <span class="voice-rec-dot" aria-hidden="true"></span>
+                          </button>
+                          <span class="voice-rec-time" id="voiceRecTime">Tap to record</span>
+                        </div>
+                        <div class="attach-actions voice-upload-row" id="voiceUploadRow">
+                          <span class="or-inline">or</span>
+                          <label class="attach-pick-btn">
+                            <input type="file" accept="audio/*" id="voiceUploadInput" hidden />
+                            <span>⬆️ Upload Audio</span>
+                          </label>
+                        </div>
+                        <div class="voice-preview" id="voicePreview" hidden>
+                          <audio controls id="voiceAudioEl" preload="metadata"></audio>
+                          <button type="button" class="attach-remove" id="voiceRemoveBtn" aria-label="Remove voice note">✕</button>
+                        </div>
+                      </div>
+
+                      <div class="attach-block" id="videoBlock">
+                        <div class="attach-block-head">
+                          <span class="attach-icon" aria-hidden="true">🎥</span>
+                          <span class="attach-block-title">Video</span>
+                          <span class="attach-block-hint">Max 10MB</span>
+                        </div>
+                        <div class="attach-actions" id="videoActions">
+                          <label class="attach-pick-btn">
+                            <input type="file" accept="video/*" capture="environment" id="videoCaptureInput" hidden />
+                            <span>📷 Record</span>
+                          </label>
+                          <label class="attach-pick-btn">
+                            <input type="file" accept="video/*" id="videoUploadInput" hidden />
+                            <span>⬆️ Upload</span>
+                          </label>
+                        </div>
+                        <div class="video-preview" id="videoPreview" hidden>
+                          <video id="videoPreviewEl" controls playsinline muted></video>
+                          <div class="attach-meta" id="videoMeta"></div>
+                          <button type="button" class="attach-remove" id="videoRemoveBtn" aria-label="Remove video">✕</button>
+                        </div>
+                      </div>
+
+                      <div class="attach-block" id="imagesBlock">
+                        <div class="attach-block-head">
+                          <span class="attach-icon" aria-hidden="true">🖼️</span>
+                          <span class="attach-block-title">Photos</span>
+                          <span class="attach-block-hint">Up to 4 · 3MB each</span>
+                        </div>
+                        <div class="attach-actions">
+                          <label class="attach-pick-btn">
+                            <input type="file" accept="image/*" capture="environment" id="imageCaptureInput" hidden />
+                            <span>📷 Camera</span>
+                          </label>
+                          <label class="attach-pick-btn">
+                            <input type="file" accept="image/*" multiple id="imageUploadInput" hidden />
+                            <span>🖼️ Choose Photos</span>
+                          </label>
+                        </div>
+                        <div class="image-preview-grid" id="imagePreviewGrid"></div>
+                      </div>
+
+                      <p class="attach-hint">Everything you attach is sent securely together with your booking request.</p>
+                    </div>
+
                     <div class="step-actions step-actions--final">
                       <button type="button" class="btn-step btn-step-back" data-step-back>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -1217,6 +1292,9 @@
                       <span>Confirm & Schedule Dispatch</span>
                       <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </button>
+                    <div class="upload-progress" id="uploadProgress" hidden>
+                      <div class="upload-progress-fill" id="uploadProgressFill"></div>
+                    </div>
 
                     <div class="or-divider"><span>or reach us directly</span></div>
 
