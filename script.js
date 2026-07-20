@@ -1028,11 +1028,11 @@ function playChime() {
 ════════════════════════════════════════════════════ */
 const MediaAttachments = (function () {
   const LIMITS = {
-    imageMaxBytes: 3 * 1024 * 1024,   // 3MB per photo — matches backend ATTACHMENT_LIMITS.image
+    imageMaxBytes: 10 * 1024 * 1024,  // 10MB per photo — matches backend ATTACHMENT_LIMITS.image
     imageMaxCount: 4,
-    videoMaxBytes: 10 * 1024 * 1024,  // 10MB — matches backend ATTACHMENT_LIMITS.video
+    videoMaxBytes: 30 * 1024 * 1024,  // 30MB — matches backend ATTACHMENT_LIMITS.video
     audioMaxSeconds: 60,              // cap for in-browser recording
-    audioMaxBytes: 8 * 1024 * 1024    // cap for uploaded audio files — matches backend ATTACHMENT_LIMITS.voice
+    audioMaxBytes: 20 * 1024 * 1024   // cap for uploaded audio files — matches backend ATTACHMENT_LIMITS.voice
   };
 
   let voiceBlob = null;
@@ -1327,11 +1327,11 @@ async function handleForm(form, btn) {
   const progressWrap = $('#uploadProgress');
   const progressFill = $('#uploadProgressFill');
 
-  // ── Loading state — a plain inline spinner, no "server" talk ──
+  // ── Loading state — a single "Sending…" stage, no separate "uploading"
+  // phase to sit through first, since it's really just one network request ──
   const orig = btn.innerHTML;
   const hasMedia = MediaAttachments.hasAttachments();
-  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>' +
-    (hasMedia ? 'Uploading & booking…' : 'Booking your service…') + '</span>';
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Sending…</span>';
   btn.disabled  = true;
 
   if (hasMedia && progressWrap) {
