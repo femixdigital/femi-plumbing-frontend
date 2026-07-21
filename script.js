@@ -1217,6 +1217,35 @@ const MediaAttachments = (function () {
     });
   }
 
+  // Resizes/re-encodes a photo on <canvas> before it ever gets converted to
+  // base64 — a phone camera shot straight out of the gallery is often 8-12MB
+  // at 4000px+ wide, which is slow to upload for no real benefit here. This
+  // brings it down to something reasonable while keeping the 10MB cap as a
+  // generous ceiling rather than the typical size.
+  function compressImage(file, { maxDimension = 1600, quality = 0.78 } = {}) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) { height = Math.round(height * (maxDimension / width)); width = maxDimension; }
+          else                { width  = Math.round(width  * (maxDimension / height)); height = maxDimension; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(url);
+          blob ? resolve(blob) : reject(new Error('Canvas produced no blob'));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image failed to load')); };
+      img.src = url;
+    });
+  }
+
   async function handleImageFiles(fileList) {
     for (const file of [...fileList]) {
       if (images.length >= LIMITS.imageMaxCount) {
@@ -1227,13 +1256,25 @@ const MediaAttachments = (function () {
         Toast.error('Unsupported file', `${file.name} isn't an image.`);
         continue;
       }
-      if (file.size > LIMITS.imageMaxBytes) {
-        Toast.error('Photo too large', `${file.name} is over ${fmtBytes(LIMITS.imageMaxBytes)}.`);
+
+      // Compress first, then check the resulting size — so the 10MB cap is
+      // a safety ceiling, not the size most photos actually hit.
+      let toStore = file;
+      try {
+        const compressed = await compressImage(file);
+        if (compressed.size < file.size) toStore = compressed;
+      } catch {
+        // Compression failed (e.g. an odd format canvas can't decode) —
+        // fall back to the original file and let the size check below judge it.
+      }
+
+      if (toStore.size > LIMITS.imageMaxBytes) {
+        Toast.error('Photo too large', `${file.name} is over ${fmtBytes(LIMITS.imageMaxBytes)}, even after compression.`);
         continue;
       }
       try {
-        const dataUrl = await fileToDataUrl(file);
-        images.push({ file, dataUrl });
+        const dataUrl = await fileToDataUrl(toStore);
+        images.push({ file: toStore, dataUrl, name: file.name });
       } catch {
         Toast.error('Read error', `Couldn't read ${file.name}.`);
       }
@@ -1259,7 +1300,7 @@ const MediaAttachments = (function () {
       });
     }
     for (const img of images) {
-      attachments.push({ kind: 'image', name: img.file.name, type: img.file.type, size: img.file.size, data: img.dataUrl });
+      attachments.push({ kind: 'image', name: img.name || img.file.name, type: img.file.type, size: img.file.size, data: img.dataUrl });
     }
     return attachments;
   }
