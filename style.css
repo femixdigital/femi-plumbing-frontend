@@ -213,6 +213,7 @@ body::after {
   pointer-events: none; z-index: 0; opacity: 0.12;
 }
 
+
 /* ── Disable Long Press Menu ── */
 * {
   -webkit-touch-callout: none;
@@ -686,6 +687,7 @@ input, textarea, [contenteditable] {
   0%,100%{ box-shadow: 0 0 0 0 rgba(31,200,116,0.5); }
   50%{     box-shadow: 0 0 0 6px rgba(31,200,116,0); }
 }
+
 .ham {
   display: none;
   flex-direction: column;
@@ -1024,6 +1026,7 @@ input, textarea, [contenteditable] {
   0%,100%{ opacity:1; transform:scaleY(1); }
   50%{     opacity:0.3; transform:scaleY(0.4); }
 }
+
 .services-section { background: var(--bg-raised); }
 
 .svc-tabs {
@@ -1252,15 +1255,37 @@ input, textarea, [contenteditable] {
 .info-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 0.5rem; }
 .info-card {
   display: flex; align-items: center; gap: 0.9rem;
-  padding: 0.9rem 1rem; border-radius: var(--radius);
+  padding: 0.9rem 1rem; border-radius: var(--radius-lg);
   transition: all var(--t2); border: 1px solid var(--glass-border);
   background: var(--glass-bg);
+  position: relative; overflow: hidden;
 }
-.info-card:hover { border-color: var(--gold); background: var(--gold-glow); }
+.info-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold); opacity: 0; transition: opacity var(--t2);
+}
+.info-card:hover {
+  border-color: var(--gold); background: var(--gold-glow);
+  transform: translateY(-2px); box-shadow: var(--sh-md);
+}
+.info-card:hover::before { opacity: 0.7; }
 .info-icon {
-  width: 36px; height: 36px; flex-shrink: 0; background: var(--bg-hover);
-  border-radius: var(--radius); border: 1px solid var(--glass-border);
+  width: 38px; height: 38px; flex-shrink: 0; position: relative;
+  background: linear-gradient(155deg, var(--bg-hover) 0%, var(--bg-input) 100%);
+  border-radius: var(--radius); border: 1px solid var(--glass-border2);
   display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.12),
+    inset 0 -3px 5px rgba(0,0,0,0.3),
+    0 3px 8px rgba(0,0,0,0.35);
+  transition: box-shadow var(--t2), transform var(--t2);
+}
+.info-card:hover .info-icon {
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.18),
+    inset 0 -3px 5px rgba(0,0,0,0.3),
+    0 4px 12px var(--gold-glow), 0 0 0 1px var(--gold-ring);
+  transform: translateY(-1px);
 }
 .info-text { flex: 1; min-width: 0; }
 .info-lbl {
@@ -1274,8 +1299,18 @@ input, textarea, [contenteditable] {
   transition: color var(--t1);
 }
 .info-card:hover .info-val { color: var(--text-primary); }
-.info-arrow { color: var(--text-muted); flex-shrink: 0; transition: transform var(--t1); }
-.info-card:hover .info-arrow { color: var(--gold); transform: translateX(3px); }
+.info-arrow {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); background: var(--glass-bg2);
+  border: 1px solid var(--glass-border2);
+  transition: all var(--t2);
+}
+.info-card:hover .info-arrow {
+  color: var(--text-inverse); background: var(--grad-gold);
+  border-color: transparent; transform: translateX(3px);
+  box-shadow: 0 2px 10px var(--gold-glow);
+}
 
 /* ──────────────────────────────────────────
    BOOKING & PAYMENT CARD
@@ -1467,11 +1502,9 @@ input, textarea, [contenteditable] {
 .btn-step-back:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-
 /* Collapses smoothly while the service dropdown panel is open, so the
    date/time fields don't clutter the view while picking a service —
    reappears the moment a service is chosen (or the panel is dismissed). */
-   
 #dateTimeRow, #step2Actions {
   transition: opacity 0.25s var(--ease), max-height 0.3s var(--ease), margin 0.3s var(--ease);
   max-height: 200px;
@@ -1511,11 +1544,10 @@ input, textarea, [contenteditable] {
    still counts as "rendered" for constraint validation) and removed
    from the tab order / a11y tree since the custom listbox below is
    the control people actually see and use. */
-   
 .cs-native {
   position: absolute; width: 1px; height: 1px;
   margin: -1px; padding: 0; border: 0;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowra;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
 }
 
 /* ──────────────────────────────────────────
@@ -1591,13 +1623,9 @@ input, textarea, [contenteditable] {
    Wraps Name / Email / Phone / Address inputs on the booking
    form so a green tick can fade in once the value is valid,
    without touching the shared .field input styling above. */
-   
 .field-input-wrap { position: relative; }
 .field-input-wrap input {
-  padding-right: 2.1rem; 
-  
-  /* room for the checkmark so text never runs under it */
-  
+  padding-right: 2.1rem; /* room for the checkmark so text never runs under it */
 }
 .field-check {
   position: absolute;
@@ -1628,6 +1656,7 @@ input, textarea, [contenteditable] {
   font-family: 'Space Mono', monospace; font-size: 0.56rem;
   color: var(--text-muted); letter-spacing: 0.08em; white-space: nowrap;
 }
+
 .wa-btn {
   width: 100%; background: #075E54; color: #fff;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -1709,7 +1738,6 @@ input, textarea, [contenteditable] {
 /* Fallback path for when the browser/host app has no microphone
    permission — lets someone attach a voice memo recorded in their
    phone's own voice-recorder app instead. */
-   
 .voice-upload-row {
   display: flex; align-items: center; gap: 8px; margin-top: 0.6rem;
 }
@@ -1719,7 +1747,6 @@ input, textarea, [contenteditable] {
 }
 
 /* Shared remove button (voice / video) */
-
 .attach-remove {
   flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
   background: rgba(240,64,64,0.12); border: 1px solid rgba(240,64,64,0.3);
@@ -1730,7 +1757,6 @@ input, textarea, [contenteditable] {
 .attach-remove:hover { background: rgba(240,64,64,0.22); }
 
 /* Pick buttons (Record / Upload / Camera / Choose Photos) */
-
 .attach-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .attach-pick-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1757,6 +1783,7 @@ input, textarea, [contenteditable] {
   font-family: 'Space Mono', monospace; font-size: 0.58rem;
   color: var(--text-muted); margin-top: 4px;
 }
+
 /* Image thumbnail grid */
 .image-preview-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
@@ -1774,7 +1801,6 @@ input, textarea, [contenteditable] {
 }
 
 /* Upload progress bar (shown during submission) */
-
 .upload-progress {
   height: 4px; border-radius: 2px; background: var(--glass-border);
   overflow: hidden; margin-top: 0.6rem;
@@ -1797,10 +1823,8 @@ input, textarea, [contenteditable] {
   font-size: 1.5rem; letter-spacing: 0.01em; line-height: 1; color: var(--text-primary);
 }
 .footer-wordmark em { font-style: normal; color: var(--gold-lt); }
-
 /* Sliding marquee so the tracked-out caption never gets clipped
    on narrow screens — same technique as the header .ticker-bar. */
-   
 .footer-tagline-wrap {
   overflow: hidden;
   max-width: 100%;
@@ -1845,7 +1869,6 @@ input, textarea, [contenteditable] {
    Colors are hardcoded (not theme vars) since
    this sits on photography regardless of theme.
 ────────────────────────────────────────── */
-
 .footer-showcase {
   position: relative;
   display: flex;
@@ -1949,7 +1972,6 @@ input, textarea, [contenteditable] {
 }
 /* Persistent circular arrow badge — visible without needing hover,
    so the card reads as tappable on phones too. */
-   
 .fnc-arrow {
   flex-shrink: 0;
   width: 26px; height: 26px;
@@ -1966,17 +1988,14 @@ input, textarea, [contenteditable] {
 /* ── Footer contact cards: 3-column grid floating over a
    sliding photo backdrop with a deep inset shadow, so the
    cards read as "glass" panels hovering above the work photos. ── */
-   
 .footer-contact-wrap {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   padding: 2rem 1.75rem;
-  
   /* Full-bleed: the sliding photo band spans the entire viewport width,
      breaking out of the page's usual container padding, for more visual
      presence — while the cards inside stay readable via their own max-width. */
-     
   width: 100vw;
   margin-left: 50%;
   transform: translateX(-50%);
@@ -2052,6 +2071,7 @@ input, textarea, [contenteditable] {
   color: var(--text-primary); margin-bottom: 4px;
 }
 .modal-head p { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; }
+
 .success-ring {
   width: 64px; height: 64px; border-radius: 50%;
   background: var(--grad-gold); color: var(--text-inverse);
@@ -2067,22 +2087,16 @@ input, textarea, [contenteditable] {
 .modal-card-sm p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; }
 
 .fab-cluster { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900; display: flex; flex-direction: column; gap: 10px; align-items: center; transition: opacity var(--t2), transform var(--t2); }
-
 /* Prevents the fixed FAB cluster from ever intercepting taps meant for the
    booking wizard's Continue/Back buttons underneath it. */
-   
 body.is-booking-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
-
 /* The bottom-left theme toggle can sit at the same height as the booking
    form's submit button on short screens, partly covering it — fade it
    out of the way while the booking view is open, same as the FAB cluster. */
-   
 body.is-booking-view .theme-switch { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
-
 /* The footer's own "Contact" nav card sits near the same bottom-right
    corner as the fixed WhatsApp/Call bubbles — without this, the FAB's
    hit area can silently swallow taps meant for that card. */
-   
 body.is-footer-in-view .fab-cluster { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
 .fab {
   width: 48px; height: 48px; border-radius: 50%;
@@ -2200,10 +2214,10 @@ body {
   to   { opacity: 0; transform: translateX(48px); }
 }
 
-.spa-view--enter-right { animation: spaEnterRight 0.36s cubic-bezier(0.22,1,0.36,1) both; }
-.spa-view--enter-left  { animation: spaEnterLeft  0.36s cubic-bezier(0.22,1,0.36,1) both; }
-.spa-view--exit-left   { animation: spaExitLeft   0.28s cubic-bezier(0.4,0,1,1)    both; }
-.spa-view--exit-right  { animation: spaExitRight  0.28s cubic-bezier(0.4,0,1,1)    both; }
+.spa-view--enter-right { animation: spaEnterRight 0.22s cubic-bezier(0.22,1,0.36,1) both; }
+.spa-view--enter-left  { animation: spaEnterLeft  0.22s cubic-bezier(0.22,1,0.36,1) both; }
+.spa-view--exit-left   { animation: spaExitLeft   0.16s cubic-bezier(0.4,0,1,1)    both; }
+.spa-view--exit-right  { animation: spaExitRight  0.16s cubic-bezier(0.4,0,1,1)    both; }
 
 .spa-view-header {
   display: flex;
@@ -2214,6 +2228,7 @@ body {
   margin: 0 auto;
   width: 100%;
 }
+
 .spa-back-btn {
   display: inline-flex;
   align-items: center;
@@ -2273,7 +2288,6 @@ body {
    anywhere in here — booking stays exclusively
    in the Services section.
 ────────────────────────────────────────── */
-
 .spa-qcard--contact {
   cursor: default;
   align-items: stretch;
@@ -2282,7 +2296,6 @@ body {
 .spa-qcard--contact .spa-qcard-title { margin-bottom: 0.15rem; }
 
 /* Toggle header — the only thing visible until tapped */
-
 .qc-contact-toggle {
   display: flex;
   align-items: center;
@@ -2306,7 +2319,6 @@ body {
 
 /* Animated collapse/expand — JS drives the max-height for a smooth,
    accurate transition instead of guessing a fixed value. */
-   
 .qc-contact-panel {
   max-height: 0;
   overflow: hidden;
@@ -2328,10 +2340,7 @@ body {
 .qc-contact-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px;
-  min-width: 0;
-  
-  /* let the grid track shrink the button instead of overflowing on long labels */
-  
+  min-width: 0; /* let the grid track shrink the button instead of overflowing on long labels */
   padding: 0.55rem 0.3rem;
   border-radius: var(--radius-pill);
   background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -2406,14 +2415,10 @@ body {
   color: var(--text-muted);
   text-transform: uppercase;
   display: block;
-  padding-right: 2rem;}
-  
-  /* keep clear of the arrow badge */
-
-
+  padding-right: 2rem; /* keep clear of the arrow badge */
+}
 /* Always-visible circular arrow badge — the primary "this is a button"
    signal, since hover-only affordances are invisible on touch devices. */
-
 .spa-qcard-arrow {
   position: absolute;
   bottom: 1rem;
@@ -2453,7 +2458,6 @@ body {
    width per the client's request — instead of
    collapsing to 2 or 1 columns, cards shrink.
 ────────────────────────────────────────── */
-
 .svc-galaxy-wrap{
   position:relative;
   margin-top:28px;
@@ -2469,9 +2473,7 @@ body {
   inset:-60%;
   z-index:0;
   pointer-events:none;
-  
   /* Recolored to the site's own gold / navy-blue palette (was purple/teal/pink) */
-  
   background:
     radial-gradient(circle at 18% 25%, var(--gold-glow) 0%, transparent 42%),
     radial-gradient(circle at 82% 20%, var(--blue-glow) 0%, transparent 44%),
@@ -2572,9 +2574,17 @@ body {
   display:flex; align-items:center; justify-content:center;
   border-radius:14px;
   font-size:1.5rem;
-  background:var(--sib-icon-bg, rgba(200,164,74,0.15));
-  box-shadow:0 0 0 1px var(--sib-accent, #C8A44A) inset;
+  background:
+    linear-gradient(155deg, rgba(255,255,255,0.06) 0%, transparent 45%),
+    var(--sib-icon-bg, rgba(200,164,74,0.15));
+  box-shadow:
+    0 0 0 1px var(--sib-accent, #C8A44A) inset,
+    inset 0 1px 1px rgba(255,255,255,0.14),
+    inset 0 -4px 6px rgba(0,0,0,0.28),
+    0 4px 10px rgba(0,0,0,0.3);
+  transition: transform .22s ease, box-shadow .22s ease;
 }
+.svc-item-btn:hover .svc-item-icon{ transform: translateY(-1px) scale(1.03); }
 .svc-item-text{
   flex:1 1 auto;
   font-size:1rem;
@@ -2588,13 +2598,15 @@ body {
   width:28px; height:28px;
   display:flex; align-items:center; justify-content:center;
   border-radius:50%;
-  background:var(--sib-accent, #C8A44A);
+  background:linear-gradient(155deg, rgba(255,255,255,0.3), transparent 60%), var(--sib-accent, #C8A44A);
   color:#0a0d16;
   font-size:0.75rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.35);
   transform:translateX(0);
-  transition:transform .22s ease;
+  transition:transform .22s ease, box-shadow .22s ease;
 }
-.svc-item-btn:hover .svc-item-arrow{ transform:translateX(3px); }
+.svc-item-btn:hover .svc-item-arrow{ transform:translateX(3px); box-shadow: 0 4px 12px var(--sib-accent, #C8A44A), inset 0 1px 1px rgba(255,255,255,0.35); }
+
 /* Eight rotating accent themes for visual variety */
 .svc-item-btn--01{ --sib-accent:#C8A44A; --sib-icon-bg:rgba(200,164,74,0.16); }
 .svc-item-btn--02{ --sib-accent:#4AC8C0; --sib-icon-bg:rgba(74,200,192,0.16); }
@@ -2615,7 +2627,6 @@ body {
 /* Decorative, always-on animations add up on a phone's battery/CPU for
    zero benefit while the tab isn't even visible — pause them the same
    way the particle canvas already pauses itself. */
-   
 body.is-tab-hidden .orb,
 body.is-tab-hidden .badge-pulse,
 body.is-tab-hidden .status-dot,
@@ -2647,15 +2658,13 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .hero-metrics { display: none; }
   .review-card { flex: 0 0 100%; }
   .spa-quicknav-grid { grid-template-columns: repeat(2, 1fr); }
-  
   /* Cards stay full-size and "side by side" — the row scrolls horizontally
      instead of shrinking the cards down to fit 4 columns in less width. */
-     
   .svc-item-grid {
     grid-template-columns: unset;
     grid-auto-flow: column;
     grid-auto-columns: 230px;
-    overflow-x: auto;
+overflow-x: auto;
     scroll-snap-type: x mandatory;
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
@@ -2669,6 +2678,7 @@ body.is-tab-hidden .svc-galaxy-stars--far {
   .footer-contact-wrap { padding: 1.75rem 1.25rem; }
   .payment-methods { gap: 6px; }
 }
+
 @media (max-width: 640px) {
   .hero-h1 { font-size: clamp(2.2rem, 8vw, 3.2rem); }
   .attach-block { padding: 0.7rem 0.75rem; }
