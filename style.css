@@ -25,7 +25,7 @@
   /* Text hierarchy */
   --text-primary:   #EDF0FF;
   --text-secondary: #8892B0;
-  --text-muted:     #4A5270;
+  --text-muted:     #6B7590; /* lightened from #4A5270 to meet WCAG contrast on dark backgrounds */
   --text-inverse:   #0E111E;
   --text-value:     #D8D2BE; /* soft warm off-white for filled field values — not stark bright white */
 
@@ -109,7 +109,7 @@
 
   --text-primary:   #12100A;
   --text-secondary: #454036;
-  --text-muted:     #8A8275;
+  --text-muted:     #6E6656; /* darkened from #8A8275 to meet WCAG contrast on light backgrounds */
   --text-value:     #3A3324;
 
   --gold:      #8A5C10;
@@ -1527,7 +1527,7 @@ input, textarea, [contenteditable] {
 .field textarea {
   background: var(--bg-input); border: 1px solid var(--glass-border);
   border-radius: var(--radius); padding: 0.68rem 0.9rem;
-  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 0.85rem;
+  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px; /* min 16px prevents iOS auto-zoom on focus */
   width: 100%; outline: none; transition: border-color var(--t1), box-shadow var(--t1);
   appearance: none; -webkit-appearance: none;
 }
@@ -1565,7 +1565,7 @@ input, textarea, [contenteditable] {
   width: 100%; text-align: left;
   background: var(--bg-input); border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill); padding: 0.68rem 1.1rem;
-  font-family: 'Outfit', sans-serif; font-size: 0.85rem;
+  font-family: 'Outfit', sans-serif; font-size: 16px; /* min 16px prevents iOS auto-zoom on focus */
   cursor: pointer; transition: border-color var(--t1), box-shadow var(--t1);
 }
 .cs-trigger:hover { border-color: var(--glass-border2); }
@@ -2718,7 +2718,7 @@ overflow-x: auto;
   .field label { font-size: 0.46rem; }
   .field input,
   .field select,
-  .field textarea { padding: 0.55rem 0.7rem; font-size: 0.8rem; }
+  .field textarea { padding: 0.55rem 0.7rem; font-size: 16px; } /* min 16px prevents iOS auto-zoom on focus */
   .field-input-wrap input { padding-right: 1.8rem; }
   .field-check { width: 15px; height: 15px; right: 0.55rem; }
   .field textarea { height: 56px; }

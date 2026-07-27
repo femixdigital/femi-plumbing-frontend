@@ -291,6 +291,7 @@ function openDrawer() {
   hamBtn?.classList.add('open');
   hamBtn?.setAttribute('aria-expanded', 'true');
   drawer?.setAttribute('aria-hidden', 'false');
+  drawer?.removeAttribute('inert');
   document.body.style.overflow = 'hidden';
 }
 function closeDrawer() {
@@ -299,6 +300,7 @@ function closeDrawer() {
   hamBtn?.classList.remove('open');
   hamBtn?.setAttribute('aria-expanded', 'false');
   drawer?.setAttribute('aria-hidden', 'true');
+  drawer?.setAttribute('inert', '');
   document.body.style.overflow = '';
 }
 
@@ -344,11 +346,13 @@ function showView(id, pushHistory = true) {
   prevEl.addEventListener('animationend', () => {
     prevEl.classList.remove('spa-view--active', 'spa-view--exit-left', 'spa-view--exit-right');
     prevEl.setAttribute('aria-hidden', 'true');
+    prevEl.setAttribute('inert', '');
   }, { once: true });
 
   nextEl.classList.add(goingHome ? 'spa-view--enter-left' : 'spa-view--enter-right');
   nextEl.classList.add('spa-view--active');
   nextEl.setAttribute('aria-hidden', 'false');
+  nextEl.removeAttribute('inert');
   nextEl.addEventListener('animationend', () => {
     nextEl.classList.remove('spa-view--enter-right', 'spa-view--enter-left');
     if (id === 'home') {
@@ -398,8 +402,10 @@ function routeFromHash() {
     if (prevEl && nextEl) {
       prevEl.classList.remove('spa-view--active');
       prevEl.setAttribute('aria-hidden', 'true');
+      prevEl.setAttribute('inert', '');
       nextEl.classList.add('spa-view--active');
       nextEl.setAttribute('aria-hidden', 'false');
+      nextEl.removeAttribute('inert');
       currentView = id;
       if (id !== 'home') document.body.style.overflow = 'hidden';
     }
@@ -891,6 +897,7 @@ function openModal(id) {
   if (!el) return;
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
+  el.removeAttribute('inert');
   if (currentView === 'home') document.body.style.overflow = 'hidden';
   setTimeout(() => el.querySelector('button')?.focus(), 100);
 }
@@ -899,6 +906,7 @@ function closeModal(id) {
   if (!el) return;
   el.classList.remove('open');
   el.setAttribute('aria-hidden', 'true');
+  el.setAttribute('inert', '');
   if (currentView === 'home' && !$$('.modal-overlay.open').length) {
     document.body.style.overflow = '';
   }
