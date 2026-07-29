@@ -25,7 +25,7 @@
   /* Text hierarchy */
   --text-primary:   #EDF0FF;
   --text-secondary: #8892B0;
-  --text-muted:     #6B7590; /* lightened from #4A5270 to meet WCAG contrast on dark backgrounds */
+  --text-muted:     #4A5270;
   --text-inverse:   #0E111E;
   --text-value:     #D8D2BE; /* soft warm off-white for filled field values — not stark bright white */
 
@@ -109,7 +109,7 @@
 
   --text-primary:   #12100A;
   --text-secondary: #454036;
-  --text-muted:     #6E6656; /* darkened from #8A8275 to meet WCAG contrast on light backgrounds */
+  --text-muted:     #8A8275;
   --text-value:     #3A3324;
 
   --gold:      #8A5C10;
@@ -1813,6 +1813,12 @@ input, textarea, [contenteditable] {
 .site-footer {
   background: var(--bg-raised); border-top: 1px solid var(--glass-border);
   position: relative; z-index: 2; padding: 2.75rem 0 1.5rem;
+  /* Defers layout/paint work for this far-below-the-fold section until
+     it's about to scroll into view — real, measurable speed win on a
+     long page with no visual/functional downside (reveal animations
+     still fire normally via IntersectionObserver). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
 }
 .footer-top {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -2214,10 +2220,10 @@ body {
   to   { opacity: 0; transform: translateX(48px); }
 }
 
-.spa-view--enter-right { animation: spaEnterRight 0.22s cubic-bezier(0.22,1,0.36,1) both; }
-.spa-view--enter-left  { animation: spaEnterLeft  0.22s cubic-bezier(0.22,1,0.36,1) both; }
-.spa-view--exit-left   { animation: spaExitLeft   0.16s cubic-bezier(0.4,0,1,1)    both; }
-.spa-view--exit-right  { animation: spaExitRight  0.16s cubic-bezier(0.4,0,1,1)    both; }
+.spa-view--enter-right { animation: spaEnterRight 0.17s cubic-bezier(0.22,1,0.36,1) both; }
+.spa-view--enter-left  { animation: spaEnterLeft  0.17s cubic-bezier(0.22,1,0.36,1) both; }
+.spa-view--exit-left   { animation: spaExitLeft   0.12s cubic-bezier(0.4,0,1,1)    both; }
+.spa-view--exit-right  { animation: spaExitRight  0.12s cubic-bezier(0.4,0,1,1)    both; }
 
 .spa-view-header {
   display: flex;
@@ -2281,86 +2287,116 @@ body {
 }
 
 /* ──────────────────────────────────────────
-   COMPACT CONTACT CARD — 4th quicknav tile.
-   All six contact methods condensed into small,
-   independently-clickable buttons inside one
-   card. Purely informational: no booking action
-   anywhere in here — booking stays exclusively
-   in the Services section.
+   GALLERY BANNER — enlarged, full-bleed photo
+   band with a dark scrim and the title/CTA
+   overlaid on top (same visual idea as the
+   footer showcase band, but with a static grid
+   of photos instead of a sliding animation —
+   zero ongoing CPU/GPU cost). The whole banner
+   is a <button data-view="gallery">, so tapping
+   anywhere on it opens the Gallery view.
 ────────────────────────────────────────── */
-.spa-qcard--contact {
-  cursor: default;
-  align-items: stretch;
-  padding: 0;
-}
-.spa-qcard--contact .spa-qcard-title { margin-bottom: 0.15rem; }
-
-/* Toggle header — the only thing visible until tapped */
-.qc-contact-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  width: 100%;
-  text-align: left;
-  padding: 1.4rem 1.5rem 1.6rem;
-  cursor: pointer;
-}
-.qc-contact-toggle .spa-qcard-icon { margin-bottom: 0; font-size: 1.75rem; }
-.qc-contact-toggle .spa-qcard-title { margin-bottom: 0; flex: 1; }
-.qc-contact-chevron {
-  flex-shrink: 0; color: var(--text-muted);
-  display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--gold-glow); transition: transform var(--t2), color var(--t2);
-}
-.qc-contact-toggle[aria-expanded="true"] .qc-contact-chevron {
-  transform: rotate(180deg); color: var(--gold);
-}
-
-/* Animated collapse/expand — JS drives the max-height for a smooth,
-   accurate transition instead of guessing a fixed value. */
-.qc-contact-panel {
-  max-height: 0;
+.gallery-banner {
+  display: block;
+  position: relative;
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  height: 260px;
   overflow: hidden;
-  opacity: 0;
-  transition: max-height 0.32s var(--ease), opacity 0.24s var(--ease);
-  padding: 0 1.5rem;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  margin-top: 1.75rem;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  padding: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
 }
-.qc-contact-panel.qc-contact-panel--open {
-  opacity: 1;
-  padding: 0 1.5rem 1.6rem;
+.gallery-banner:focus-visible { outline: 2px solid var(--gold); outline-offset: -3px; }
+
+.gallery-banner-photos {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.gallery-banner-photos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.7) brightness(0.62);
+  transition: filter 0.4s var(--ease), transform 0.5s var(--ease);
+}
+.gallery-banner:hover .gallery-banner-photos img { filter: saturate(0.85) brightness(0.7); transform: scale(1.04); }
+
+.gallery-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5,7,13,0.55) 0%, rgba(5,7,13,0.72) 45%, rgba(5,7,13,0.55) 100%);
 }
 
-.qc-contact-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 0.5rem;
+.gallery-banner-caption {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 1.5rem;
 }
-.qc-contact-btn {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px;
-  min-width: 0; /* let the grid track shrink the button instead of overflowing on long labels */
-  padding: 0.55rem 0.3rem;
+.gallery-banner-icon { font-size: 1.9rem; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.5)); }
+.gallery-banner-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  color: #F4F5FA;
+  letter-spacing: -0.01em;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+.gallery-banner-sub {
+  font-size: 0.85rem;
+  color: rgba(237,240,255,0.72);
+  max-width: 380px;
+  line-height: 1.6;
+}
+.gallery-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-inverse);
+  background: var(--grad-gold);
+  padding: 0.6rem 1.2rem;
   border-radius: var(--radius-pill);
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  text-align: center;
-  transition: all var(--t2);
-  cursor: pointer;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  transition: transform var(--t2), box-shadow var(--t2);
 }
-.qc-contact-btn:hover { border-color: var(--gold); background: var(--gold-glow); transform: translateY(-2px); }
-.qc-contact-btn--static { cursor: default; }
-.qc-contact-btn--static:hover { border-color: var(--glass-border2); background: var(--glass-bg); transform: none; }
-.qc-contact-icon { font-size: 0.95rem; line-height: 1; }
-.qc-contact-lbl {
-  font-family: 'Space Mono', monospace; font-size: 0.46rem;
-  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
-  white-space: normal;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  line-height: 1.25;
+.gallery-banner-arrow { transition: transform var(--t2); }
+.gallery-banner:hover .gallery-banner-cta { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.5); }
+.gallery-banner:hover .gallery-banner-arrow { transform: translateX(3px); }
+
+@media (max-width: 640px) {
+  .gallery-banner { height: 210px; }
+  .gallery-banner-sub { font-size: 0.76rem; }
+  .gallery-banner-cta { font-size: 0.7rem; padding: 0.5rem 1rem; }
 }
-.qc-contact-btn:hover .qc-contact-lbl { color: var(--gold-lt); }
+
+/* ──────────────────────────────────────────
+   FINAL CTA BANNER — full-bleed gold section
+   right before the footer. Uses content-visibility
+   since it's always below the fold on load.
+────────────────────────────────────────── */
 
 .spa-qcard {
   display: flex;
@@ -2617,6 +2653,85 @@ body {
 .svc-item-btn--07{ --sib-accent:#5CA8F0; --sib-icon-bg:rgba(92,168,240,0.16); }
 .svc-item-btn--08{ --sib-accent:#E0C860; --sib-icon-bg:rgba(224,200,96,0.16); }
 
+/* ──────────────────────────────────────────
+   GALLERY VIEW — portfolio grid
+   Each card is a photo + a "Request a Quote for
+   This" button that pre-fills the booking form's
+   message field with a reference to that project.
+────────────────────────────────────────── */
+.gallery-view-section { padding-top: 1rem; }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 2rem;
+}
+.gallery-item {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-card);
+  box-shadow: var(--sh-sm);
+  transition: transform var(--t2), box-shadow var(--t2), border-color var(--t2);
+}
+.gallery-item:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  box-shadow: var(--sh-md), 0 0 0 1px var(--gold);
+}
+.gallery-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease);
+}
+.gallery-item:hover img { transform: scale(1.06); }
+.gallery-item figcaption {
+  padding: 0.9rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.gallery-item-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.gallery-quote-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-inverse);
+  background: var(--grad-gold);
+  border: none;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: transform var(--t2), box-shadow var(--t2);
+  box-shadow: 0 3px 12px var(--gold-glow);
+  width: 100%;
+}
+.gallery-quote-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--gold-ring); }
+.gallery-quote-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+}
+@media (max-width: 540px) {
+  .gallery-grid { grid-template-columns: 1fr; gap: 12px; }
+  .gallery-item-title { font-size: 0.82rem; }
+}
+
 @media (prefers-reduced-motion: reduce){
   .svc-galaxy-bg, .svc-galaxy-stars, .svc-galaxy-stars--far{ animation:none; }
   .orb, .badge-pulse, .status-dot, .ticker-inner, .hero-banner-slide,
@@ -2702,9 +2817,6 @@ overflow-x: auto;
   .footer-contact .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
   .footer-contact .info-val { font-size: 0.74rem; }
   .footer-contact .info-lbl { font-size: 0.44rem; }
-  .qc-contact-btn { padding: 0.45rem 0.2rem; }
-  .qc-contact-icon { font-size: 0.85rem; }
-  .qc-contact-lbl { font-size: 0.42rem; }
 
   .form-shell { padding: 1.25rem; max-width: 100%; }
   .booking-stepper { gap: 2px; margin-bottom: 1.1rem; }
