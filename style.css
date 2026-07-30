@@ -1680,6 +1680,71 @@ input, textarea, [contenteditable] {
   color: var(--text-muted); font-family: 'Outfit', sans-serif; font-size: 0.68rem;
 }
 .attach-field { gap: 10px; }
+
+/* ── Collapsed-by-default attachments card — one toggle instead of
+   three always-visible blocks, shortening the form. On open, the
+   three attach-blocks inside reveal one after another via
+   .attach-stagger + the --stagger custom property each carries. ── */
+.attach-collapse {
+  border: 1px solid var(--glass-border2);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-hover);
+}
+.attach-collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.attach-collapse-icon { font-size: 1.05rem; flex-shrink: 0; }
+.attach-collapse-title {
+  flex: 1;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+.attach-collapse-chevron {
+  flex-shrink: 0; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--gold-glow);
+  transition: transform var(--t2), color var(--t2);
+}
+.attach-collapse-toggle[aria-expanded="true"] .attach-collapse-chevron {
+  transform: rotate(180deg); color: var(--gold);
+}
+.attach-collapse-panel {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.32s var(--ease), opacity 0.24s var(--ease);
+  padding: 0 1rem;
+}
+.attach-collapse-panel.attach-panel--open {
+  opacity: 1;
+  padding: 0 1rem 1rem;
+}
+/* Staggered reveal — each block fades/slides in slightly after the
+   previous one, driven by the --stagger index set inline on each. */
+.attach-stagger {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.attach-panel--open .attach-stagger {
+  animation: attachStaggerIn 0.36s var(--ease) both;
+  animation-delay: calc(var(--stagger, 0) * 0.09s);
+}
+@keyframes attachStaggerIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .attach-block {
   background: var(--bg-input); border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl); padding: 1rem 1.1rem;
@@ -2280,6 +2345,79 @@ body {
   padding-bottom: 4rem;
 }
 
+/* ──────────────────────────────────────────
+   INSTANT QUOTE ESTIMATOR
+────────────────────────────────────────── */
+.estimator-section { padding-top: 0.5rem; padding-bottom: 3rem; }
+.estimator-card {
+  max-width: 560px;
+  margin: 0 auto;
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-border2);
+}
+.estimator-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold);
+}
+.estimator-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.estimator-select {
+  background: var(--bg-input); border: 1px solid var(--glass-border);
+  border-radius: var(--radius); padding: 0.68rem 0.9rem;
+  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px;
+  width: 100%; outline: none; transition: border-color var(--t1), box-shadow var(--t1);
+  appearance: none; -webkit-appearance: none;
+}
+.estimator-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+.estimator-select option { background: var(--bg-card); color: var(--text-primary); }
+
+.estimator-result {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--glass-border);
+  text-align: center;
+  animation: stepFadeIn 0.32s ease both;
+}
+.estimator-result-label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+.estimator-result-value {
+  display: block;
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  background: var(--grad-gold);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 0.5rem;
+}
+.estimator-result-note {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto 1rem;
+}
+.estimator-select.est-shake { animation: estShake 0.4s var(--ease); border-color: var(--red) !important; }
+@keyframes estShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
 .spa-quicknav-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2392,11 +2530,6 @@ body {
   .gallery-banner-cta { font-size: 0.7rem; padding: 0.5rem 1rem; }
 }
 
-/* ──────────────────────────────────────────
-   FINAL CTA BANNER — full-bleed gold section
-   right before the footer. Uses content-visibility
-   since it's always below the fold on load.
-────────────────────────────────────────── */
 
 .spa-qcard {
   display: flex;

@@ -819,6 +819,139 @@ document.addEventListener('click', e => {
 });
 
 /* ════════════════════════════════════════════════════
+   10c. INSTANT QUOTE ESTIMATOR
+   Pure client-side lookup — no backend call. Picks a
+   [service][size] cell from PRICE_TABLE and shows it as
+   a range, clearly labeled as an estimate. "Book This
+   Service" routes into the real booking form the same
+   way the service cards do, with size noted in the
+   message field.
+
+   🔧 EDIT ME — every number below is a placeholder.
+   Replace with your real pricing before relying on this
+   in production. Values are in Naira (₦), [min, max].
+════════════════════════════════════════════════════ */
+const PRICE_TABLE = {
+  'Residential Plumbing Solution':             { small: [15000,  35000],  medium: [40000,  90000],   large: [100000, 250000]  },
+  'Bathroom & Kitchen Upgrades':               { small: [50000,  120000], medium: [150000, 350000],  large: [400000, 900000]  },
+  'Pipe Installation & Repiping':              { small: [20000,  50000],  medium: [60000,  150000],  large: [180000, 450000]  },
+  'Toilet & Fixture Installation':             { small: [12000,  30000],  medium: [35000,  80000],   large: [90000,  200000]  },
+  'Commercial and Estate Plumbing Systems':    { small: [100000, 250000], medium: [300000, 700000],  large: [800000, 2000000] },
+  'Water System, Borehole & Pump Solutions':   { small: [150000, 350000], medium: [400000, 900000],  large: [1000000,2500000] },
+  'Leak Detection & Diagnostic Services':      { small: [10000,  25000],  medium: [30000,  60000],   large: [70000,  150000]  },
+  'Water Efficiency & Conservation Systems':   { small: [30000,  70000],  medium: [80000,  200000],  large: [250000, 600000]  },
+  'Drain Cleaning & Unclogging':               { small: [8000,   20000],  medium: [25000,  55000],   large: [60000,  130000]  },
+  'Water Heater Installation & Repair':        { small: [20000,  45000],  medium: [50000,  120000],  large: [130000, 300000]  },
+  'Gas Line Installation & Repair':            { small: [25000,  60000],  medium: [70000,  160000],  large: [180000, 400000]  },
+  'Emergency Call-Out (24/7)':                 { small: [15000,  40000],  medium: [45000,  100000],  large: [120000, 300000]  }
+};
+const SIZE_LABELS = { small: 'a small job', medium: 'a medium job', large: 'a large job' };
+
+function formatNaira(n) {
+  return '₦' + n.toLocaleString('en-NG');
+}
+
+(function initEstimator() {
+  const serviceSel = $('#estService');
+  const sizeSel    = $('#estSize');
+  const calcBtn    = $('#estCalcBtn');
+  const bookBtn    = $('#estBookBtn');
+  const result     = $('#estResult');
+  const resultVal  = $('#estResultValue');
+  if (!serviceSel || !sizeSel || !calcBtn) return;
+
+  let lastService = '';
+  let lastSize    = '';
+
+  calcBtn.addEventListener('click', () => {
+    const service = serviceSel.value;
+    const size    = sizeSel.value;
+
+    if (!service) { serviceSel.classList.add('est-shake'); serviceSel.focus(); setTimeout(() => serviceSel.classList.remove('est-shake'), 400); return; }
+    if (!size)    { sizeSel.classList.add('est-shake');    sizeSel.focus();    setTimeout(() => sizeSel.classList.remove('est-shake'), 400);    return; }
+
+    const range = PRICE_TABLE[service]?.[size];
+    if (!range) return; // shouldn't happen — every service/size combo is covered above
+
+    lastService = service;
+    lastSize    = size;
+    resultVal.textContent = `${formatNaira(range[0])} – ${formatNaira(range[1])}`;
+    result.hidden = false;
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  bookBtn?.addEventListener('click', () => {
+    goToBookingWithService(lastService);
+    const msg = $('#fmsg');
+    if (msg && !msg.value.trim()) {
+      msg.value = `I got an estimate for ${SIZE_LABELS[lastSize] || 'this job'} and would like to book it.`;
+    }
+  });
+})();
+
+/* ════════════════════════════════════════════════════
+   10d. ATTACHMENTS PANEL — collapsed by default
+   Voice Note / Video / Photos are grouped behind one
+   toggle so the form reads shorter. On open, the three
+   attach-blocks reveal one after another (staggered via
+   the --stagger custom property set on each block).
+   Height is measured with scrollHeight for a smooth,
+   accurate expand/collapse at any content size — same
+   pattern used elsewhere on this site (e.g. the old
+   contact-card toggle).
+════════════════════════════════════════════════════ */
+function collapseAttachPanel() {
+  const toggle = $('#attachToggle');
+  const panel  = $('#attachPanel');
+  if (!toggle || !panel) return;
+  panel.classList.remove('attach-panel--open');
+  panel.style.maxHeight = '0px';
+  panel.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
+}
+
+(function attachPanelToggle() {
+  const toggle = $('#attachToggle');
+  const panel  = $('#attachPanel');
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+
+    if (isOpen) {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      requestAnimationFrame(() => {
+        panel.classList.remove('attach-panel--open');
+        panel.style.maxHeight = '0px';
+      });
+      toggle.setAttribute('aria-expanded', 'false');
+      panel.addEventListener('transitionend', function onEnd(e) {
+        if (e.propertyName !== 'max-height') return;
+        panel.hidden = true;
+        panel.removeEventListener('transitionend', onEnd);
+      });
+    } else {
+      panel.hidden = false;
+      panel.style.maxHeight = '0px';
+      requestAnimationFrame(() => {
+        panel.classList.add('attach-panel--open');
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      });
+      toggle.setAttribute('aria-expanded', 'true');
+      panel.addEventListener('transitionend', function onEnd(e) {
+        if (e.propertyName !== 'max-height') return;
+        panel.style.maxHeight = 'none'; // let it breathe if content reflows (e.g. previews appear)
+        panel.removeEventListener('transitionend', onEnd);
+      });
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (toggle.getAttribute('aria-expanded') === 'true') panel.style.maxHeight = 'none';
+  });
+})();
+
+/* ════════════════════════════════════════════════════
    11. REVIEW CAROUSEL
 ════════════════════════════════════════════════════ */
 let carouselInitted = false;
@@ -1433,6 +1566,7 @@ async function handleForm(form, btn) {
       BookingWizard.reset();
       ServiceSelect.reset();
       MediaAttachments.reset();
+      collapseAttachPanel();
       if (progressWrap) progressWrap.hidden = true;
 
       // Visually reset payment method selection to match the hidden field's

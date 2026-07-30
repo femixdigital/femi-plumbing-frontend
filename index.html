@@ -346,6 +346,70 @@
     </div>
   </section>
 
+  <!-- ── HOME: Instant Quote Estimator — pick a service + rough job
+       size, get an estimated price range immediately. No backend
+       needed: pure client-side lookup against PRICE_TABLE in
+       script.js. Clearly labeled as an estimate, with a one-tap
+       path into the real booking form once someone's ready. ── -->
+  <section class="section estimator-section" id="estimator">
+    <div class="container">
+      <header class="sec-head sec-head-center reveal">
+        <div class="sec-eyebrow">Free &amp; Instant</div>
+        <h2 class="sec-h2">Get a Ballpark <span class="g-gold">Price</span> in Seconds</h2>
+        <p class="sec-lead">Pick a service and job size for an instant estimate — no calls, no waiting. Final price is always confirmed after a quick look at the job.</p>
+      </header>
+
+      <div class="estimator-card glass reveal">
+        <div class="estimator-row">
+          <div class="field">
+            <label for="estService">Service</label>
+            <select id="estService" class="estimator-select">
+              <option value="" disabled selected>Choose a service</option>
+              <optgroup label="Residential">
+                <option value="Residential Plumbing Solution">Residential Plumbing Solution</option>
+                <option value="Bathroom & Kitchen Upgrades">Bathroom &amp; Kitchen Upgrades</option>
+                <option value="Pipe Installation & Repiping">Pipe Installation &amp; Repiping</option>
+                <option value="Toilet & Fixture Installation">Toilet &amp; Fixture Installation</option>
+              </optgroup>
+              <optgroup label="Commercial">
+                <option value="Commercial and Estate Plumbing Systems">Commercial and Estate Plumbing Systems</option>
+                <option value="Water System, Borehole & Pump Solutions">Water System, Borehole &amp; Pump Solutions</option>
+              </optgroup>
+              <optgroup label="Specialist">
+                <option value="Leak Detection & Diagnostic Services">Leak Detection &amp; Diagnostic Services</option>
+                <option value="Water Efficiency & Conservation Systems">Water Efficiency &amp; Conservation Systems</option>
+                <option value="Drain Cleaning & Unclogging">Drain Cleaning &amp; Unclogging</option>
+                <option value="Water Heater Installation & Repair">Water Heater Installation &amp; Repair</option>
+                <option value="Gas Line Installation & Repair">Gas Line Installation &amp; Repair</option>
+              </optgroup>
+              <optgroup label="Urgent">
+                <option value="Emergency Call-Out (24/7)">Emergency Call-Out (24/7)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label for="estSize">Job Size</label>
+            <select id="estSize" class="estimator-select">
+              <option value="" disabled selected>Choose a size</option>
+              <option value="small">Small — single fixture / minor repair</option>
+              <option value="medium">Medium — full room / multiple fixtures</option>
+              <option value="large">Large — whole building / commercial</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary btn-block" id="estCalcBtn">Get My Estimate</button>
+
+        <div class="estimator-result" id="estResult" hidden>
+          <span class="estimator-result-label">Estimated Range</span>
+          <span class="estimator-result-value" id="estResultValue">₦0 – ₦0</span>
+          <p class="estimator-result-note">This is a rough estimate based on typical jobs — your final price is confirmed after a free on-site or photo-based inspection.</p>
+          <button type="button" class="btn-primary btn-block" id="estBookBtn">Book This Service →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ── HOME: Quick-nav cards ── -->
   <section class="section spa-quicknav-section">
     <div class="container">
@@ -437,7 +501,6 @@
     </div>
   </button>
 
-
   <!-- Footer lives inside home view -->
   <footer class="site-footer">
     <div class="container">
@@ -516,7 +579,9 @@
     </div>
   </footer>
 
+
 </div><!-- /view-home -->
+
 
 <!-- ══════════════════════════════════════
      SERVICES VIEW
@@ -1235,6 +1300,8 @@
                             <div class="cs-group-label">Residential</div>
                             <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Residential Plumbing Solution">Residential Plumbing Solution</button>
                             <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Bathroom & Kitchen Upgrades">Bathroom &amp; Kitchen Upgrades</button>
+                            <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Pipe Installation & Repiping">Pipe Installation &amp; Repiping</button>
+                            <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Toilet & Fixture Installation">Toilet &amp; Fixture Installation</button>
                           </div>
                           <div class="cs-group">
                             <div class="cs-group-label">Commercial</div>
@@ -1245,6 +1312,9 @@
                             <div class="cs-group-label">Specialist</div>
                             <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Leak Detection & Diagnostic Services">Leak Detection &amp; Diagnostic Services</button>
                             <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Water Efficiency & Conservation Systems">Water Efficiency &amp; Conservation Systems</button>
+                            <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Drain Cleaning & Unclogging">Drain Cleaning &amp; Unclogging</button>
+                            <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Water Heater Installation & Repair">Water Heater Installation &amp; Repair</button>
+                            <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Gas Line Installation & Repair">Gas Line Installation &amp; Repair</button>
                           </div>
                           <div class="cs-group cs-group--urgent">
                             <div class="cs-group-label">Urgent</div>
@@ -1352,78 +1422,93 @@
                     </div>
 
                     <!-- ── Multimedia attachments — voice note, video, photos.
-                         All optional, all sent along with the booking. ── -->
+                         All optional, all sent along with the booking.
+                         Collapsed into one expandable card so the form
+                         reads shorter by default; the three upload
+                         options reveal one after another once opened. ── -->
                     <div class="field attach-field">
                       <label>Show Us The Problem <span class="field-optional">(optional)</span></label>
 
-                      <div class="attach-block" id="voiceBlock">
-                        <div class="attach-block-head">
-                          <span class="attach-icon" aria-hidden="true">🎙️</span>
-                          <span class="attach-block-title">Voice Note</span>
-                          <span class="attach-block-hint" id="voiceRecHint">Max 60s · 20MB</span>
-                        </div>
-                        <div class="voice-recorder" id="voiceRecorder">
-                          <button type="button" class="voice-rec-btn" id="voiceRecBtn" aria-label="Record voice note">
-                            <span class="voice-rec-dot" aria-hidden="true"></span>
-                          </button>
-                          <span class="voice-rec-time" id="voiceRecTime">Tap to record</span>
-                        </div>
-                        <div class="attach-actions voice-upload-row" id="voiceUploadRow">
-                          <span class="or-inline">or</span>
-                          <label class="attach-pick-btn">
-                            <input type="file" accept="audio/*" id="voiceUploadInput" hidden />
-                            <span>⬆️ Upload Audio</span>
-                          </label>
-                        </div>
-                        <div class="voice-preview" id="voicePreview" hidden>
-                          <audio controls id="voiceAudioEl" preload="metadata"></audio>
-                          <button type="button" class="attach-remove" id="voiceRemoveBtn" aria-label="Remove voice note">✕</button>
+                      <div class="attach-collapse">
+                        <button type="button" class="attach-collapse-toggle" id="attachToggle" aria-expanded="false" aria-controls="attachPanel">
+                          <span class="attach-collapse-icon" aria-hidden="true">📎</span>
+                          <span class="attach-collapse-title">Add a Voice Note, Video, or Photos</span>
+                          <span class="attach-collapse-chevron" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                          </span>
+                        </button>
+
+                        <div class="attach-collapse-panel" id="attachPanel" hidden>
+                          <div class="attach-block attach-stagger" id="voiceBlock" style="--stagger:0">
+                            <div class="attach-block-head">
+                              <span class="attach-icon" aria-hidden="true">🎙️</span>
+                              <span class="attach-block-title">Voice Note</span>
+                              <span class="attach-block-hint" id="voiceRecHint">Max 60s · 20MB</span>
+                            </div>
+                            <div class="voice-recorder" id="voiceRecorder">
+                              <button type="button" class="voice-rec-btn" id="voiceRecBtn" aria-label="Record voice note">
+                                <span class="voice-rec-dot" aria-hidden="true"></span>
+                              </button>
+                              <span class="voice-rec-time" id="voiceRecTime">Tap to record</span>
+                            </div>
+                            <div class="attach-actions voice-upload-row" id="voiceUploadRow">
+                              <span class="or-inline">or</span>
+                              <label class="attach-pick-btn">
+                                <input type="file" accept="audio/*" id="voiceUploadInput" hidden />
+                                <span>⬆️ Upload Audio</span>
+                              </label>
+                            </div>
+                            <div class="voice-preview" id="voicePreview" hidden>
+                              <audio controls id="voiceAudioEl" preload="metadata"></audio>
+                              <button type="button" class="attach-remove" id="voiceRemoveBtn" aria-label="Remove voice note">✕</button>
+                            </div>
+                          </div>
+
+                          <div class="attach-block attach-stagger" id="videoBlock" style="--stagger:1">
+                            <div class="attach-block-head">
+                              <span class="attach-icon" aria-hidden="true">🎥</span>
+                              <span class="attach-block-title">Video</span>
+                              <span class="attach-block-hint">Max 30MB</span>
+                            </div>
+                            <div class="attach-actions" id="videoActions">
+                              <label class="attach-pick-btn">
+                                <input type="file" accept="video/*" capture="environment" id="videoCaptureInput" hidden />
+                                <span>📷 Record</span>
+                              </label>
+                              <label class="attach-pick-btn">
+                                <input type="file" accept="video/*" id="videoUploadInput" hidden />
+                                <span>⬆️ Upload</span>
+                              </label>
+                            </div>
+                            <div class="video-preview" id="videoPreview" hidden>
+                              <video id="videoPreviewEl" controls playsinline muted></video>
+                              <div class="attach-meta" id="videoMeta"></div>
+                              <button type="button" class="attach-remove" id="videoRemoveBtn" aria-label="Remove video">✕</button>
+                            </div>
+                          </div>
+
+                          <div class="attach-block attach-stagger" id="imagesBlock" style="--stagger:2">
+                            <div class="attach-block-head">
+                              <span class="attach-icon" aria-hidden="true">🖼️</span>
+                              <span class="attach-block-title">Photos</span>
+                              <span class="attach-block-hint">Up to 4 · 10MB each</span>
+                            </div>
+                            <div class="attach-actions">
+                              <label class="attach-pick-btn">
+                                <input type="file" accept="image/*" capture="environment" id="imageCaptureInput" hidden />
+                                <span>📷 Camera</span>
+                              </label>
+                              <label class="attach-pick-btn">
+                                <input type="file" accept="image/*" multiple id="imageUploadInput" hidden />
+                                <span>🖼️ Choose Photos</span>
+                              </label>
+                            </div>
+                            <div class="image-preview-grid" id="imagePreviewGrid"></div>
+                          </div>
+
+                          <p class="attach-hint">Everything you attach is sent securely together with your booking request.</p>
                         </div>
                       </div>
-
-                      <div class="attach-block" id="videoBlock">
-                        <div class="attach-block-head">
-                          <span class="attach-icon" aria-hidden="true">🎥</span>
-                          <span class="attach-block-title">Video</span>
-                          <span class="attach-block-hint">Max 30MB</span>
-                        </div>
-                        <div class="attach-actions" id="videoActions">
-                          <label class="attach-pick-btn">
-                            <input type="file" accept="video/*" capture="environment" id="videoCaptureInput" hidden />
-                            <span>📷 Record</span>
-                          </label>
-                          <label class="attach-pick-btn">
-                            <input type="file" accept="video/*" id="videoUploadInput" hidden />
-                            <span>⬆️ Upload</span>
-                          </label>
-                        </div>
-                        <div class="video-preview" id="videoPreview" hidden>
-                          <video id="videoPreviewEl" controls playsinline muted></video>
-                          <div class="attach-meta" id="videoMeta"></div>
-                          <button type="button" class="attach-remove" id="videoRemoveBtn" aria-label="Remove video">✕</button>
-                        </div>
-                      </div>
-
-                      <div class="attach-block" id="imagesBlock">
-                        <div class="attach-block-head">
-                          <span class="attach-icon" aria-hidden="true">🖼️</span>
-                          <span class="attach-block-title">Photos</span>
-                          <span class="attach-block-hint">Up to 4 · 10MB each</span>
-                        </div>
-                        <div class="attach-actions">
-                          <label class="attach-pick-btn">
-                            <input type="file" accept="image/*" capture="environment" id="imageCaptureInput" hidden />
-                            <span>📷 Camera</span>
-                          </label>
-                          <label class="attach-pick-btn">
-                            <input type="file" accept="image/*" multiple id="imageUploadInput" hidden />
-                            <span>🖼️ Choose Photos</span>
-                          </label>
-                        </div>
-                        <div class="image-preview-grid" id="imagePreviewGrid"></div>
-                      </div>
-
-                      <p class="attach-hint">Everything you attach is sent securely together with your booking request.</p>
                     </div>
 
                     <div class="step-actions step-actions--final">
