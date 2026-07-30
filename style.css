@@ -139,7 +139,16 @@
    RESET
 ────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  /* Reserves the scrollbar's width permanently (desktop browsers with
+     classic, non-overlay scrollbars) so switching views — which toggles
+     body overflow:hidden and removes/restores the scrollbar — never
+     changes the effective viewport width. Without this, that toggle
+     causes a visible horizontal jump on every page-to-page navigation. */
+  scrollbar-gutter: stable;
+}
 html, body {
   /* Kills the default mobile blue/grey flash on tap for every link and
      button — Safari/Chrome apply this automatically unless told not to. */
@@ -1537,7 +1546,7 @@ input, textarea, [contenteditable] {
 .field select:focus,
 .field textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .field select option { background: var(--bg-card); color: var(--text-primary); }
-.field textarea { height: 82px; resize: vertical; }
+.field textarea { height: 82px; resize: none; }
 
 /* Real <select> kept only as the form's actual data source + native
    required/validity check — visually hidden (not display:none, so it
@@ -1568,7 +1577,7 @@ input, textarea, [contenteditable] {
   font-family: 'Outfit', sans-serif; font-size: 16px; /* min 16px prevents iOS auto-zoom on focus */
   cursor: pointer; transition: border-color var(--t1), box-shadow var(--t1);
 }
-.cs-trigger:hover { border-color: var(--glass-border2); }
+.cs-trigger:hover { border-color: var(--gold); }
 .cs-trigger[aria-expanded="true"],
 .cs-trigger:focus-visible {
   border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); outline: none;
@@ -1608,7 +1617,7 @@ input, textarea, [contenteditable] {
   color: var(--text-secondary); cursor: pointer;
   transition: background var(--t1), color var(--t1);
 }
-.cs-option:hover { background: var(--glass-bg2); color: var(--text-primary); }
+.cs-option:hover { background: var(--gold-glow); color: var(--gold-lt); }
 .cs-option:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 .cs-option[aria-selected="true"] {
   background: var(--gold-glow); color: var(--gold-lt);
@@ -1690,6 +1699,8 @@ input, textarea, [contenteditable] {
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--bg-hover);
+  max-width: 340px;
+  margin: 0 auto;
 }
 .attach-collapse-toggle {
   display: flex;
@@ -1697,7 +1708,7 @@ input, textarea, [contenteditable] {
   gap: 10px;
   width: 100%;
   text-align: left;
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.85rem;
   cursor: pointer;
   background: none;
   border: none;
@@ -1747,8 +1758,9 @@ input, textarea, [contenteditable] {
 
 .attach-block {
   background: var(--bg-input); border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl); padding: 1rem 1.1rem;
-  margin-bottom: 10px;
+  border-radius: var(--radius-xl);
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 8px;
   position: relative; overflow: hidden;
   transition: border-color var(--t2);
 }
@@ -1757,15 +1769,42 @@ input, textarea, [contenteditable] {
   background: var(--grad-gold); opacity: 0.5;
 }
 .attach-block:focus-within { border-color: var(--glass-border2); }
-.attach-block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 0.7rem; }
+.attach-block-toggle {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; text-align: left;
+  padding: 0.7rem 0.85rem;
+  background: none; border: none; cursor: pointer;
+}
 .attach-icon { font-size: 1rem; flex-shrink: 0; }
 .attach-block-title {
-  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
   color: var(--text-primary); flex: 1;
 }
 .attach-block-hint {
-  font-family: 'Space Mono', monospace; font-size: 0.5rem;
+  font-family: 'Space Mono', monospace; font-size: 0.48rem;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+}
+.attach-block-chevron {
+  flex-shrink: 0; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold-glow);
+  transition: transform var(--t2), color var(--t2);
+}
+.attach-block-toggle[aria-expanded="true"] .attach-block-chevron {
+  transform: rotate(180deg); color: var(--gold);
+}
+.attach-block-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.28s var(--ease), opacity 0.2s var(--ease);
+  padding: 0 0.85rem;
+}
+.attach-block-body.attach-body--open {
+  opacity: 1;
+  padding: 0.15rem 0.85rem 0.9rem;
+  border-top: 1px solid var(--glass-border);
 }
 .attach-hint {
   font-size: 0.68rem; color: var(--text-muted); line-height: 1.6; margin-top: 2px;
@@ -1774,13 +1813,13 @@ input, textarea, [contenteditable] {
 /* Voice recorder */
 .voice-recorder { display: flex; align-items: center; gap: 12px; }
 .voice-rec-btn {
-  flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
   background: var(--glass-bg); border: 1.5px solid var(--glass-border2);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all var(--t2);
 }
 .voice-rec-dot {
-  width: 16px; height: 16px; border-radius: 50%;
+  width: 13px; height: 13px; border-radius: 50%;
   background: var(--red); transition: all var(--t2);
 }
 .voice-rec-btn:hover { border-color: var(--red); }
@@ -1788,7 +1827,7 @@ input, textarea, [contenteditable] {
   border-color: var(--red); background: rgba(240,64,64,0.1);
   animation: voiceRecPulse 1.4s ease-in-out infinite;
 }
-.voice-rec-btn.recording .voice-rec-dot { border-radius: 4px; width: 14px; height: 14px; }
+.voice-rec-btn.recording .voice-rec-dot { border-radius: 4px; width: 12px; height: 12px; }
 @keyframes voiceRecPulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(240,64,64,0.4); }
   50%     { box-shadow: 0 0 0 8px rgba(240,64,64,0); }
@@ -1828,7 +1867,7 @@ input, textarea, [contenteditable] {
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem;
   color: var(--text-secondary);
   background: var(--glass-bg); border: 1px solid var(--glass-border2);
-  padding: 0.5rem 0.95rem; border-radius: var(--radius-pill);
+  padding: 0.42rem 0.8rem; border-radius: var(--radius-pill);
   cursor: pointer; transition: all var(--t2);
 }
 .attach-pick-btn:hover { border-color: var(--gold); color: var(--gold-lt); background: var(--gold-glow); }
@@ -1836,7 +1875,7 @@ input, textarea, [contenteditable] {
 /* Video preview */
 .video-preview { margin-top: 0.7rem; position: relative; }
 .video-preview video {
-  width: 100%; max-height: 220px; border-radius: var(--radius); background: #000;
+  width: 100%; max-height: 150px; border-radius: var(--radius); background: #000;
   display: block;
 }
 .video-preview .attach-remove, .voice-preview .attach-remove { position: static; }
@@ -1851,8 +1890,8 @@ input, textarea, [contenteditable] {
 
 /* Image thumbnail grid */
 .image-preview-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 8px; margin-top: 0.7rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 6px; margin-top: 0.7rem;
 }
 .image-preview-grid:empty { display: none; }
 .img-thumb {
@@ -1878,12 +1917,10 @@ input, textarea, [contenteditable] {
 .site-footer {
   background: var(--bg-raised); border-top: 1px solid var(--glass-border);
   position: relative; z-index: 2; padding: 2.75rem 0 1.5rem;
-  /* Defers layout/paint work for this far-below-the-fold section until
-     it's about to scroll into view — real, measurable speed win on a
-     long page with no visual/functional downside (reveal animations
-     still fire normally via IntersectionObserver). */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 900px;
+  /* content-visibility removed — this section's real height varies too
+     much across screen widths for a fixed contain-intrinsic-size guess
+     to stay accurate, and the mismatch was causing a visible layout
+     snap/jump right as it scrolled into view. Not worth the speed win. */
 }
 .footer-top {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -2369,15 +2406,13 @@ body {
   gap: 10px;
   margin-bottom: 10px;
 }
-.estimator-select {
-  background: var(--bg-input); border: 1px solid var(--glass-border);
-  border-radius: var(--radius); padding: 0.68rem 0.9rem;
-  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px;
-  width: 100%; outline: none; transition: border-color var(--t1), box-shadow var(--t1);
-  appearance: none; -webkit-appearance: none;
-}
-.estimator-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
-.estimator-select option { background: var(--bg-card); color: var(--text-primary); }
+/* Compact dropdown sizing for the estimator specifically — smaller
+   than the booking form's version per request (reduced height/width),
+   reusing the same .cs-trigger/.cs-panel component so it opens as an
+   anchored dropdown instead of the browser's native full-screen picker. */
+.est-select .cs-trigger { padding: 0.55rem 0.8rem; font-size: 0.85rem; }
+.est-select .cs-panel { max-height: 200px; }
+.est-select .cs-option { padding: 0.5rem 0.6rem; font-size: 0.8rem; }
 
 .estimator-result {
   margin-top: 1.1rem;
@@ -2411,7 +2446,7 @@ body {
   max-width: 400px;
   margin: 0 auto 1rem;
 }
-.estimator-select.est-shake { animation: estShake 0.4s var(--ease); border-color: var(--red) !important; }
+.cs-trigger.est-shake { animation: estShake 0.4s var(--ease); border-color: var(--red) !important; }
 @keyframes estShake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-4px); }
@@ -2449,8 +2484,10 @@ body {
   text-align: center;
   font-family: inherit;
   padding: 0;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 260px;
+  /* content-visibility removed — height drops to 210px on mobile via
+     media query below, which no longer matched the fixed 260px
+     contain-intrinsic-size guess and caused a scroll-jump right as
+     this banner came into view. Not worth the speed win. */
 }
 .gallery-banner:focus-visible { outline: 2px solid var(--gold); outline-offset: -3px; }
 

@@ -362,39 +362,59 @@
       <div class="estimator-card glass reveal">
         <div class="estimator-row">
           <div class="field">
-            <label for="estService">Service</label>
-            <select id="estService" class="estimator-select">
-              <option value="" disabled selected>Choose a service</option>
-              <optgroup label="Residential">
-                <option value="Residential Plumbing Solution">Residential Plumbing Solution</option>
-                <option value="Bathroom & Kitchen Upgrades">Bathroom &amp; Kitchen Upgrades</option>
-                <option value="Pipe Installation & Repiping">Pipe Installation &amp; Repiping</option>
-                <option value="Toilet & Fixture Installation">Toilet &amp; Fixture Installation</option>
-              </optgroup>
-              <optgroup label="Commercial">
-                <option value="Commercial and Estate Plumbing Systems">Commercial and Estate Plumbing Systems</option>
-                <option value="Water System, Borehole & Pump Solutions">Water System, Borehole &amp; Pump Solutions</option>
-              </optgroup>
-              <optgroup label="Specialist">
-                <option value="Leak Detection & Diagnostic Services">Leak Detection &amp; Diagnostic Services</option>
-                <option value="Water Efficiency & Conservation Systems">Water Efficiency &amp; Conservation Systems</option>
-                <option value="Drain Cleaning & Unclogging">Drain Cleaning &amp; Unclogging</option>
-                <option value="Water Heater Installation & Repair">Water Heater Installation &amp; Repair</option>
-                <option value="Gas Line Installation & Repair">Gas Line Installation &amp; Repair</option>
-              </optgroup>
-              <optgroup label="Urgent">
-                <option value="Emergency Call-Out (24/7)">Emergency Call-Out (24/7)</option>
-              </optgroup>
-            </select>
+            <label id="estServiceLabel">Service</label>
+            <div class="custom-select est-select" id="estServiceSelect">
+              <button type="button" class="cs-trigger" id="estServiceTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="estServiceLabel">
+                <span class="cs-value cs-placeholder" id="estServiceValue">Choose a service</span>
+                <span class="cs-caret" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="cs-panel" id="estServiceList" role="listbox" aria-labelledby="estServiceLabel" hidden>
+                <div class="cs-group">
+                  <div class="cs-group-label">Residential</div>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Residential Plumbing Solution">Residential Plumbing Solution</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Bathroom & Kitchen Upgrades">Bathroom &amp; Kitchen Upgrades</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Pipe Installation & Repiping">Pipe Installation &amp; Repiping</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Toilet & Fixture Installation">Toilet &amp; Fixture Installation</button>
+                </div>
+                <div class="cs-group">
+                  <div class="cs-group-label">Commercial</div>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Commercial and Estate Plumbing Systems">Commercial and Estate Plumbing Systems</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Water System, Borehole & Pump Solutions">Water System, Borehole &amp; Pump Solutions</button>
+                </div>
+                <div class="cs-group">
+                  <div class="cs-group-label">Specialist</div>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Leak Detection & Diagnostic Services">Leak Detection &amp; Diagnostic Services</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Water Efficiency & Conservation Systems">Water Efficiency &amp; Conservation Systems</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Drain Cleaning & Unclogging">Drain Cleaning &amp; Unclogging</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Water Heater Installation & Repair">Water Heater Installation &amp; Repair</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="Gas Line Installation & Repair">Gas Line Installation &amp; Repair</button>
+                </div>
+                <div class="cs-group cs-group--urgent">
+                  <div class="cs-group-label">Urgent</div>
+                  <button type="button" class="cs-option cs-option--urgent" role="option" aria-selected="false" data-value="Emergency Call-Out (24/7)">Emergency Call-Out (24/7)</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="field">
-            <label for="estSize">Job Size</label>
-            <select id="estSize" class="estimator-select">
-              <option value="" disabled selected>Choose a size</option>
-              <option value="small">Small — single fixture / minor repair</option>
-              <option value="medium">Medium — full room / multiple fixtures</option>
-              <option value="large">Large — whole building / commercial</option>
-            </select>
+            <label id="estSizeLabel">Job Size</label>
+            <div class="custom-select est-select" id="estSizeSelect">
+              <button type="button" class="cs-trigger" id="estSizeTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="estSizeLabel">
+                <span class="cs-value cs-placeholder" id="estSizeValue">Choose a size</span>
+                <span class="cs-caret" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="cs-panel" id="estSizeList" role="listbox" aria-labelledby="estSizeLabel" hidden>
+                <div class="cs-group">
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="small">Small — single fixture / minor repair</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="medium">Medium — full room / multiple fixtures</button>
+                  <button type="button" class="cs-option" role="option" aria-selected="false" data-value="large">Large — whole building / commercial</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1440,70 +1460,85 @@
 
                         <div class="attach-collapse-panel" id="attachPanel" hidden>
                           <div class="attach-block attach-stagger" id="voiceBlock" style="--stagger:0">
-                            <div class="attach-block-head">
+                            <button type="button" class="attach-block-toggle" aria-expanded="false" aria-controls="voiceBlockBody">
                               <span class="attach-icon" aria-hidden="true">🎙️</span>
                               <span class="attach-block-title">Voice Note</span>
                               <span class="attach-block-hint" id="voiceRecHint">Max 60s · 20MB</span>
-                            </div>
-                            <div class="voice-recorder" id="voiceRecorder">
-                              <button type="button" class="voice-rec-btn" id="voiceRecBtn" aria-label="Record voice note">
-                                <span class="voice-rec-dot" aria-hidden="true"></span>
-                              </button>
-                              <span class="voice-rec-time" id="voiceRecTime">Tap to record</span>
-                            </div>
-                            <div class="attach-actions voice-upload-row" id="voiceUploadRow">
-                              <span class="or-inline">or</span>
-                              <label class="attach-pick-btn">
-                                <input type="file" accept="audio/*" id="voiceUploadInput" hidden />
-                                <span>⬆️ Upload Audio</span>
-                              </label>
-                            </div>
-                            <div class="voice-preview" id="voicePreview" hidden>
-                              <audio controls id="voiceAudioEl" preload="metadata"></audio>
-                              <button type="button" class="attach-remove" id="voiceRemoveBtn" aria-label="Remove voice note">✕</button>
+                              <span class="attach-block-chevron" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                              </span>
+                            </button>
+                            <div class="attach-block-body" id="voiceBlockBody" hidden>
+                              <div class="voice-recorder" id="voiceRecorder">
+                                <button type="button" class="voice-rec-btn" id="voiceRecBtn" aria-label="Record voice note">
+                                  <span class="voice-rec-dot" aria-hidden="true"></span>
+                                </button>
+                                <span class="voice-rec-time" id="voiceRecTime">Tap to record</span>
+                              </div>
+                              <div class="attach-actions voice-upload-row" id="voiceUploadRow">
+                                <span class="or-inline">or</span>
+                                <label class="attach-pick-btn">
+                                  <input type="file" accept="audio/*" id="voiceUploadInput" hidden />
+                                  <span>⬆️ Upload Audio</span>
+                                </label>
+                              </div>
+                              <div class="voice-preview" id="voicePreview" hidden>
+                                <audio controls id="voiceAudioEl" preload="metadata"></audio>
+                                <button type="button" class="attach-remove" id="voiceRemoveBtn" aria-label="Remove voice note">✕</button>
+                              </div>
                             </div>
                           </div>
 
                           <div class="attach-block attach-stagger" id="videoBlock" style="--stagger:1">
-                            <div class="attach-block-head">
+                            <button type="button" class="attach-block-toggle" aria-expanded="false" aria-controls="videoBlockBody">
                               <span class="attach-icon" aria-hidden="true">🎥</span>
                               <span class="attach-block-title">Video</span>
                               <span class="attach-block-hint">Max 30MB</span>
-                            </div>
-                            <div class="attach-actions" id="videoActions">
-                              <label class="attach-pick-btn">
-                                <input type="file" accept="video/*" capture="environment" id="videoCaptureInput" hidden />
-                                <span>📷 Record</span>
-                              </label>
-                              <label class="attach-pick-btn">
-                                <input type="file" accept="video/*" id="videoUploadInput" hidden />
-                                <span>⬆️ Upload</span>
-                              </label>
-                            </div>
-                            <div class="video-preview" id="videoPreview" hidden>
-                              <video id="videoPreviewEl" controls playsinline muted></video>
-                              <div class="attach-meta" id="videoMeta"></div>
-                              <button type="button" class="attach-remove" id="videoRemoveBtn" aria-label="Remove video">✕</button>
+                              <span class="attach-block-chevron" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                              </span>
+                            </button>
+                            <div class="attach-block-body" id="videoBlockBody" hidden>
+                              <div class="attach-actions" id="videoActions">
+                                <label class="attach-pick-btn">
+                                  <input type="file" accept="video/*" capture="environment" id="videoCaptureInput" hidden />
+                                  <span>📷 Record</span>
+                                </label>
+                                <label class="attach-pick-btn">
+                                  <input type="file" accept="video/*" id="videoUploadInput" hidden />
+                                  <span>⬆️ Upload</span>
+                                </label>
+                              </div>
+                              <div class="video-preview" id="videoPreview" hidden>
+                                <video id="videoPreviewEl" controls playsinline muted></video>
+                                <div class="attach-meta" id="videoMeta"></div>
+                                <button type="button" class="attach-remove" id="videoRemoveBtn" aria-label="Remove video">✕</button>
+                              </div>
                             </div>
                           </div>
 
                           <div class="attach-block attach-stagger" id="imagesBlock" style="--stagger:2">
-                            <div class="attach-block-head">
+                            <button type="button" class="attach-block-toggle" aria-expanded="false" aria-controls="imagesBlockBody">
                               <span class="attach-icon" aria-hidden="true">🖼️</span>
                               <span class="attach-block-title">Photos</span>
                               <span class="attach-block-hint">Up to 4 · 10MB each</span>
+                              <span class="attach-block-chevron" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                              </span>
+                            </button>
+                            <div class="attach-block-body" id="imagesBlockBody" hidden>
+                              <div class="attach-actions">
+                                <label class="attach-pick-btn">
+                                  <input type="file" accept="image/*" capture="environment" id="imageCaptureInput" hidden />
+                                  <span>📷 Camera</span>
+                                </label>
+                                <label class="attach-pick-btn">
+                                  <input type="file" accept="image/*" multiple id="imageUploadInput" hidden />
+                                  <span>🖼️ Choose Photos</span>
+                                </label>
+                              </div>
+                              <div class="image-preview-grid" id="imagePreviewGrid"></div>
                             </div>
-                            <div class="attach-actions">
-                              <label class="attach-pick-btn">
-                                <input type="file" accept="image/*" capture="environment" id="imageCaptureInput" hidden />
-                                <span>📷 Camera</span>
-                              </label>
-                              <label class="attach-pick-btn">
-                                <input type="file" accept="image/*" multiple id="imageUploadInput" hidden />
-                                <span>🖼️ Choose Photos</span>
-                              </label>
-                            </div>
-                            <div class="image-preview-grid" id="imagePreviewGrid"></div>
                           </div>
 
                           <p class="attach-hint">Everything you attach is sent securely together with your booking request.</p>

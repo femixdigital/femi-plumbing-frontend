@@ -851,24 +851,84 @@ function formatNaira(n) {
   return '₦' + n.toLocaleString('en-NG');
 }
 
+/* ── Generic compact dropdown factory ──
+   Same visual/behavioral pattern as the booking form's service
+   picker (custom-select / cs-trigger / cs-panel / cs-option), but
+   reusable for any trigger+panel pair. Used so the estimator's two
+   fields open this compact anchored panel instead of the browser's
+   native <select>, which on mobile takes over the entire screen. */
+function createCompactDropdown({ triggerId, panelId, valueId, placeholder }) {
+  const trigger = $('#' + triggerId);
+  const panel   = $('#' + panelId);
+  const valueEl = $('#' + valueId);
+  if (!trigger || !panel || !valueEl) return { getValue: () => '', setValue() {}, reset() {}, shake() {} };
+
+  const root    = trigger.closest('.custom-select');
+  const options = $$('.cs-option', panel);
+  let value = '';
+
+  function isOpen() { return !panel.hidden; }
+  function close() { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+  function open() {
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    const current = options.find(o => o.getAttribute('aria-selected') === 'true') || options[0];
+    requestAnimationFrame(() => current?.focus({ preventScroll: true }));
+  }
+  function select(text) {
+    value = text;
+    valueEl.textContent = options.find(o => o.dataset.value === text)?.textContent.trim() || text;
+    valueEl.classList.remove('cs-placeholder');
+    options.forEach(o => o.setAttribute('aria-selected', String(o.dataset.value === text)));
+  }
+  function reset() {
+    value = '';
+    valueEl.textContent = placeholder;
+    valueEl.classList.add('cs-placeholder');
+    options.forEach(o => o.setAttribute('aria-selected', 'false'));
+  }
+  function shake() {
+    trigger.classList.add('est-shake');
+    trigger.focus();
+    setTimeout(() => trigger.classList.remove('est-shake'), 400);
+  }
+
+  trigger.addEventListener('click', () => (isOpen() ? close() : open()));
+  options.forEach(opt => {
+    opt.addEventListener('click', () => { select(opt.dataset.value); close(); trigger.focus({ preventScroll: true }); });
+  });
+  panel.addEventListener('keydown', e => {
+    const idx = options.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); (options[idx + 1] || options[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (options[idx - 1] || options[options.length - 1]).focus(); }
+    else if (e.key === 'Escape') { close(); trigger.focus({ preventScroll: true }); }
+  });
+  document.addEventListener('click', e => {
+    if (isOpen() && root && !root.contains(e.target)) close();
+  });
+
+  return { getValue: () => value, setValue: select, reset, shake };
+}
+
 (function initEstimator() {
-  const serviceSel = $('#estService');
-  const sizeSel    = $('#estSize');
-  const calcBtn    = $('#estCalcBtn');
-  const bookBtn    = $('#estBookBtn');
-  const result     = $('#estResult');
-  const resultVal  = $('#estResultValue');
-  if (!serviceSel || !sizeSel || !calcBtn) return;
+  const calcBtn   = $('#estCalcBtn');
+  const bookBtn   = $('#estBookBtn');
+  const result    = $('#estResult');
+  const resultVal = $('#estResultValue');
+  if (!calcBtn) return;
+
+  const serviceDD = createCompactDropdown({ triggerId: 'estServiceTrigger', panelId: 'estServiceList', valueId: 'estServiceValue', placeholder: 'Choose a service' });
+  const sizeDD    = createCompactDropdown({ triggerId: 'estSizeTrigger',    panelId: 'estSizeList',    valueId: 'estSizeValue',    placeholder: 'Choose a size' });
 
   let lastService = '';
   let lastSize    = '';
 
   calcBtn.addEventListener('click', () => {
-    const service = serviceSel.value;
-    const size    = sizeSel.value;
+    const service = serviceDD.getValue();
+    const size    = sizeDD.getValue();
 
-    if (!service) { serviceSel.classList.add('est-shake'); serviceSel.focus(); setTimeout(() => serviceSel.classList.remove('est-shake'), 400); return; }
-    if (!size)    { sizeSel.classList.add('est-shake');    sizeSel.focus();    setTimeout(() => sizeSel.classList.remove('est-shake'), 400);    return; }
+    if (!service) { serviceDD.shake(); return; }
+    if (!size)    { sizeDD.shake();    return; }
 
     const range = PRICE_TABLE[service]?.[size];
     if (!range) return; // shouldn't happen — every service/size combo is covered above
@@ -950,6 +1010,46 @@ function collapseAttachPanel() {
     if (toggle.getAttribute('aria-expanded') === 'true') panel.style.maxHeight = 'none';
   });
 })();
+
+/* ── Nested per-block accordions (Voice Note / Video / Photos) ──
+   Each block's header is its own toggle, independent of the others,
+   so opening one doesn't force the rest open too — keeps the whole
+   attachments card compact even with all three present. Same
+   scrollHeight-measured smooth expand/collapse as the outer toggle. */
+document.addEventListener('click', e => {
+  const toggle = e.target.closest('.attach-block-toggle');
+  if (!toggle) return;
+  const body = document.getElementById(toggle.getAttribute('aria-controls'));
+  if (!body) return;
+  const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+
+  if (isOpen) {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      body.classList.remove('attach-body--open');
+      body.style.maxHeight = '0px';
+    });
+    toggle.setAttribute('aria-expanded', 'false');
+    body.addEventListener('transitionend', function onEnd(ev) {
+      if (ev.propertyName !== 'max-height') return;
+      body.hidden = true;
+      body.removeEventListener('transitionend', onEnd);
+    });
+  } else {
+    body.hidden = false;
+    body.style.maxHeight = '0px';
+    requestAnimationFrame(() => {
+      body.classList.add('attach-body--open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    });
+    toggle.setAttribute('aria-expanded', 'true');
+    body.addEventListener('transitionend', function onEnd(ev) {
+      if (ev.propertyName !== 'max-height') return;
+      body.style.maxHeight = 'none'; // let it breathe if a preview appears afterward
+      body.removeEventListener('transitionend', onEnd);
+    });
+  }
+});
 
 /* ════════════════════════════════════════════════════
    11. REVIEW CAROUSEL
