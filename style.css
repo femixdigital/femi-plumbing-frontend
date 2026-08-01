@@ -482,8 +482,9 @@ input, textarea, [contenteditable] {
 ────────────────────────────────────────── */
 .gallery-strip {
   position: relative; width: 100%;
-  padding: 6.6rem 0; overflow: hidden; z-index: 5;
+  padding: 7.5rem 0; overflow: hidden; z-index: 5;
   background: var(--bg-raised); border-bottom: 1px solid var(--glass-border);
+  isolation: isolate;
 }
 .gallery-strip::before,
 .gallery-strip::after {
@@ -497,30 +498,257 @@ input, textarea, [contenteditable] {
   right: 0; background: linear-gradient(to left, var(--bg-raised), transparent);
 }
 
+/* Galaxy-inspired animated background — enriched with a third brand
+   accent (emerald) plus a denser star field for more depth, while
+   staying strictly transform/opacity-driven so the compositor can
+   run it at 60fps without repainting the blurred layer itself.
+   Respects prefers-reduced-motion and pauses when the tab isn't
+   visible (see the shared rules further down the file). */
+.gallery-strip-galaxy-bg {
+  position: absolute; inset: -60%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 25%, var(--gold-glow) 0%, transparent 42%),
+    radial-gradient(circle at 82% 20%, var(--blue-glow) 0%, transparent 44%),
+    radial-gradient(circle at 30% 80%, var(--emerald-glow) 0%, transparent 46%),
+    radial-gradient(circle at 78% 78%, var(--blue-glow) 0%, transparent 46%),
+    radial-gradient(circle at 55% 45%, var(--gold-glow) 0%, transparent 38%),
+    conic-gradient(from 0deg at 50% 50%, var(--bg-raised) 0%, var(--bg-base) 30%, var(--bg-raised) 55%, var(--bg-base) 80%, var(--bg-raised) 100%);
+  filter: blur(70px) saturate(1.35);
+  animation: galaxySpin 55s linear infinite;
+  transform-origin: center;
+}
+.gallery-strip-galaxy-stars {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.2px 1.2px at 32% 62%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(1.6px 1.6px at 52% 30%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.2px 1.2px at 68% 78%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.6px 1.6px at 82% 15%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.2px 1.2px at 90% 55%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.6px 1.6px at 8% 85%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.2px 1.2px at 45% 92%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.4px 1.4px at 60% 8%, rgba(232,200,110,0.7), transparent),
+    radial-gradient(1.3px 1.3px at 25% 45%, rgba(122,159,255,0.6), transparent);
+  background-size: 100% 100%;
+  animation: starTwinkle 3.4s ease-in-out infinite alternate;
+  opacity: 0.75;
+}
+.gallery-strip-galaxy-stars--far {
+  background-size: 140% 140%; background-position: 20% 30%;
+  opacity: 0.4;
+  animation: starTwinkle 4.8s ease-in-out infinite alternate-reverse, starDrift 75s linear infinite;
+  filter: blur(0.3px);
+}
+/* A single slow-drifting streak of light for extra richness — pure
+   transform animation (translate + opacity), negligible cost. */
+.gallery-strip-galaxy-comet {
+  position: absolute; z-index: 1; top: 15%; left: -10%;
+  width: 140px; height: 1.5px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(232,200,110,0.9), transparent);
+  animation: cometDrift 9s ease-in infinite;
+  animation-delay: 3s;
+  opacity: 0;
+}
+@keyframes cometDrift {
+  0%   { transform: translate(0, 0) rotate(18deg); opacity: 0; }
+  4%   { opacity: 0.8; }
+  16%  { opacity: 0; }
+  100% { transform: translate(130vw, 60px) rotate(18deg); opacity: 0; }
+}
+
 .slider-track {
-  display: flex; gap: 10px; width: max-content;
-  animation: stripScroll 52s linear infinite;
+  position: relative; z-index: 2;
+  display: flex; gap: 22px; width: max-content;
   will-change: transform;
 }
-.slider-track:hover { animation-play-state: paused; }
-@keyframes stripScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
 .slide {
-  width: 128px; height: 186px; border-radius: var(--radius-lg);
-  overflow: hidden; flex-shrink: 0; border: 1px solid var(--glass-border);
-  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  height: 240px; flex-shrink: 0; border-radius: var(--radius-xl);
+  overflow: hidden; border: 1px solid var(--glass-border2);
+  box-shadow: var(--sh-md);
+  transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), box-shadow 0.55s cubic-bezier(0.22,1,0.36,1), border-color 0.55s var(--ease);
   cursor: pointer;
+  position: relative;
 }
+/* Variable-width: no width is set, so the box sizes itself to the
+   image's own natural aspect ratio at a fixed height — every photo
+   shows completely, nothing gets cropped to force a uniform box. */
 .slide img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: saturate(0.7) brightness(0.8);
-  transform: scale(1.06); transition: filter 0.4s var(--ease), transform 0.4s var(--ease);
+  display: block; height: 100%; width: auto; max-width: none;
+  filter: saturate(0.75) brightness(0.82);
+  transform: scale(1.04); transition: filter 0.55s var(--ease), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+.slide::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  pointer-events: none;
 }
 .slide:hover {
-  transform: translateY(-8px) scale(1.04);
-  box-shadow: var(--sh-lg), 0 0 0 1.5px var(--gold); z-index: 5;
+  transform: translateY(-12px) scale(1.03);
+  box-shadow: var(--sh-xl), 0 0 32px var(--gold-glow), 0 0 0 1.5px var(--gold);
+  border-color: var(--gold);
+  z-index: 5;
 }
-.slide:hover img { filter: saturate(1.05) brightness(1); transform: scale(1.1); }
+.slide:hover img { filter: saturate(1.08) brightness(1.02); transform: scale(1.1); }
+.slide:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .slide { height: 190px; }
+}
+@media (max-width: 640px) {
+  .slide { height: 155px; }
+  .slider-track { gap: 14px; }
+  .gallery-strip { padding: 4.5rem 0; }
+  .gallery-strip::before, .gallery-strip::after { width: 90px; }
+}
+
+/* ──────────────────────────────────────────
+   GALLERY LIGHTBOX — full-screen viewer with
+   zoom (buttons + drag-to-pan when zoomed) and
+   prev/next navigation through the unique photo
+   set (not the doubled marquee list).
+────────────────────────────────────────── */
+.lightbox-overlay {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(4,6,11,0.95); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.lightbox-overlay.open { opacity: 1; visibility: visible; }
+.lightbox-stage {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.lightbox-img-wrap {
+  max-width: 90vw; max-height: 85vh;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+}
+.lightbox-img-wrap.is-zoomed { cursor: grab; }
+.lightbox-img-wrap.is-zoomed.is-dragging { cursor: grabbing; }
+.lightbox-img {
+  max-width: 90vw; max-height: 85vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  box-shadow: var(--sh-xl);
+  transition: transform 0.25s var(--ease);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.lightbox-close, .lightbox-prev, .lightbox-next, .lightbox-zoom-btn {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.16);
+  color: #fff; cursor: pointer; transition: all var(--t2);
+}
+.lightbox-close:hover, .lightbox-prev:hover, .lightbox-next:hover, .lightbox-zoom-btn:hover {
+  background: var(--gold-glow); border-color: var(--gold); color: var(--gold-lt);
+}
+.lightbox-close { position: absolute; top: 1.25rem; right: 1.25rem; width: 44px; height: 44px; z-index: 2; }
+.lightbox-prev, .lightbox-next {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 52px; height: 52px; z-index: 2;
+}
+.lightbox-prev { left: 1.25rem; }
+.lightbox-next { right: 1.25rem; }
+.lightbox-zoom-controls {
+  position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 2;
+}
+.lightbox-zoom-btn { width: 42px; height: 42px; font-size: 1.15rem; font-weight: 700; }
+.lightbox-counter {
+  position: absolute; top: 1.25rem; left: 1.25rem; z-index: 2;
+  font-family: 'Space Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+  padding: 6px 12px; border-radius: var(--radius-pill);
+}
+
+@media (max-width: 640px) {
+  .lightbox-prev, .lightbox-next { width: 40px; height: 40px; }
+  .lightbox-close { width: 36px; height: 36px; top: 0.85rem; right: 0.85rem; }
+  .lightbox-counter { top: 0.85rem; left: 0.85rem; font-size: 0.62rem; padding: 4px 10px; }
+  .lightbox-zoom-controls { bottom: 0.85rem; }
+  .lightbox-zoom-btn { width: 34px; height: 34px; font-size: 1rem; }
+}
+
+/* ──────────────────────────────────────────
+   SITE SEARCH BAR — sticky, sits right below
+   the gallery strip; sticks to the header's
+   bottom edge once scrolled past.
+────────────────────────────────────────── */
+.site-search-bar {
+  position: sticky;
+  top: var(--nav-total);
+  z-index: 700;
+  background: rgba(7,10,20,0.92);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0.7rem 1.75rem;
+}
+[data-theme="light"] .site-search-bar { background: rgba(230,226,216,0.92); }
+.site-search-inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 0.55rem 1rem;
+  transition: border-color var(--t2), box-shadow var(--t2);
+}
+.site-search-bar:focus-within .site-search-inner { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+.site-search-icon { color: var(--text-muted); flex-shrink: 0; }
+.site-search-input {
+  flex: 1; min-width: 0; background: none; border: none; outline: none;
+  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px;
+}
+.site-search-input::placeholder { color: var(--text-muted); }
+.site-search-clear {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--glass-bg2); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.68rem; border: none; cursor: pointer; transition: all var(--t1);
+}
+.site-search-clear:hover { background: var(--gold-glow); color: var(--gold-lt); }
+
+.site-search-results {
+  max-width: var(--container);
+  margin: 8px auto 0;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sh-lg);
+  padding: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.site-search-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 0.65rem 0.8rem; border-radius: 8px;
+  background: none; border: none; cursor: pointer;
+  transition: background var(--t1);
+}
+.site-search-item:hover, .site-search-item.is-active { background: var(--gold-glow); }
+.site-search-item-icon { font-size: 0.95rem; flex-shrink: 0; }
+.site-search-item-text { flex: 1; min-width: 0; }
+.site-search-item-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem; color: var(--text-primary); }
+.site-search-item-cat {
+  font-family: 'Space Mono', monospace; font-size: 0.5rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+}
+.site-search-empty { padding: 0.9rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+@media (max-width: 640px) {
+  .site-search-bar { padding: 0.6rem 1rem; }
+  .site-search-input { font-size: 16px; }
+}
 
 /* ──────────────────────────────────────────
    HEADER  ← all fixes applied here
@@ -2041,7 +2269,75 @@ input, textarea, [contenteditable] {
 .footer-showcase-caption .footer-badges { justify-content: center; }
 .footer-showcase-caption .fbadge { color: var(--gold-lt); border-color: rgba(232,200,110,0.4); background: rgba(5,7,13,0.35); }
 
-/* ── Modern numbered nav row ── */
+/* ══════════════════════════════════════════════════════
+   FOOTER COMPANY-INFO ACCORDION — 11 nested glassmorphism
+   cards in a clean 2-column layout (uses the existing .glass
+   utility for the blur/translucency), each independently
+   collapsible with a smooth scrollHeight-driven max-height
+   transition (same pattern used elsewhere on the site).
+   Founder's Profile lives in its own standalone spotlight
+   card below the grid, not as a numbered accordion item.
+═══════════════════════════════════════════════════════ */
+/* Founder spotlight — small standalone card, aligned to the far
+   right on desktop. */
+.ftr-founder-spotlight {
+  display: flex; gap: 14px; align-items: center;
+  max-width: 340px;
+  margin: 0 0 1.5rem auto; /* pushes it to the right on desktop */
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-lg);
+  position: relative; overflow: hidden;
+  transition: border-color var(--t2), box-shadow var(--t2);
+}
+.ftr-founder-spotlight::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold);
+}
+.ftr-founder-spotlight:hover { border-color: var(--gold); box-shadow: var(--sh-sm), 0 0 0 1px var(--gold-ring); }
+.ftr-founder-spotlight-photo {
+  width: 52px; height: 78px; object-fit: cover; flex-shrink: 0;
+  border-radius: var(--radius); border: 1px solid var(--glass-border2);
+}
+.ftr-founder-spotlight-text { min-width: 0; }
+.ftr-founder-spotlight-name {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.82rem;
+  color: var(--text-primary); white-space: nowrap;
+}
+.ftr-founder-spotlight-role {
+  font-family: 'Space Mono', monospace; font-size: 0.54rem;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Newsletter — standalone centered bar */
+.ftr-newsletter-bar { display: flex; justify-content: center; margin-bottom: 1.75rem; }
+.ftr-newsletter { max-width: 360px; width: 100%; text-align: center; }
+.ftr-newsletter-label {
+  display: block; font-family: 'Space Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;
+}
+.ftr-newsletter-row { display: flex; gap: 6px; }
+.ftr-newsletter-input {
+  flex: 1; min-width: 0; background: var(--bg-input); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill); padding: 0.6rem 0.9rem;
+  color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px; outline: none;
+  transition: border-color var(--t1), box-shadow var(--t1);
+}
+.ftr-newsletter-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+.ftr-newsletter-input::placeholder { color: var(--text-muted); }
+.ftr-newsletter-btn {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--grad-gold); color: var(--text-inverse); border: none; cursor: pointer;
+  transition: transform var(--t2), box-shadow var(--t2); box-shadow: 0 3px 12px var(--gold-glow);
+}
+.ftr-newsletter-btn:hover { transform: translateX(2px) scale(1.05); box-shadow: 0 6px 18px var(--gold-ring); }
+.ftr-newsletter-note {
+  font-size: 0.72rem; color: var(--gold-lt); margin-top: 0.6rem; line-height: 1.5;
+}
+
+/* ── Original numbered nav row (restored) ── */
 .footer-nav-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2078,8 +2374,6 @@ input, textarea, [contenteditable] {
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
   color: var(--text-primary); flex: 1;
 }
-/* Persistent circular arrow badge — visible without needing hover,
-   so the card reads as tappable on phones too. */
 .fnc-arrow {
   flex-shrink: 0;
   width: 26px; height: 26px;
@@ -2092,6 +2386,12 @@ input, textarea, [contenteditable] {
 }
 .footer-nav-card:hover .fnc-arrow { transform: translateX(2px) scale(1.08); box-shadow: 0 4px 14px var(--gold-ring); }
 .footer-nav-card:active .fnc-arrow { transform: scale(0.94); }
+
+@media (max-width: 640px) {
+  .footer-nav-row { grid-template-columns: 1fr 1fr; }
+  .fnc-label { font-size: 0.78rem; }
+  .ftr-founder-spotlight { margin: 0 auto 1.5rem; max-width: 100%; }
+}
 
 /* ── Footer contact cards: 3-column grid floating over a
    sliding photo backdrop with a deep inset shadow, so the
@@ -2385,6 +2685,50 @@ body {
 /* ──────────────────────────────────────────
    INSTANT QUOTE ESTIMATOR
 ────────────────────────────────────────── */
+/* ──────────────────────────────────────────
+   LIVE STATISTICS — animated count-up cards
+────────────────────────────────────────── */
+.live-stats-section { padding-top: 1rem; padding-bottom: 1rem; }
+.live-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.stat-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center;
+  padding: 1.5rem 1rem;
+  border-radius: var(--radius-lg);
+  position: relative; overflow: hidden;
+  transition: transform var(--t2), border-color var(--t2), box-shadow var(--t2);
+}
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--grad-gold); opacity: 0.7;
+}
+.stat-card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: var(--sh-sm), 0 0 0 1px var(--gold-ring); }
+.stat-value {
+  font-family: 'Syne', sans-serif; font-weight: 900;
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+  background: var(--grad-gold);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .live-stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .live-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 1.1rem 0.75rem; }
+}
+
 .estimator-section { padding-top: 0.5rem; padding-bottom: 3rem; }
 .estimator-card {
   max-width: 560px;
@@ -2903,12 +3247,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce){
-  .svc-galaxy-bg, .svc-galaxy-stars, .svc-galaxy-stars--far{ animation:none; }
+  .svc-galaxy-bg, .svc-galaxy-stars, .svc-galaxy-stars--far,
+  .gallery-strip-galaxy-bg, .gallery-strip-galaxy-stars, .gallery-strip-galaxy-stars--far,
+  .gallery-strip-galaxy-comet{ animation:none; }
   .orb, .badge-pulse, .status-dot, .ticker-inner, .hero-banner-slide,
   .footer-showcase-row, .footer-tagline-track, .footer-contact-bg-row,
-  .scroll-line, .emg-icon, .slider-track { animation: none !important; }
+  .scroll-line, .emg-icon { animation: none !important; }
 }
-
 /* Decorative, always-on animations add up on a phone's battery/CPU for
    zero benefit while the tab isn't even visible — pause them the same
    way the particle canvas already pauses itself. */
@@ -2920,10 +3265,13 @@ body.is-tab-hidden .hero-banner-slide,
 body.is-tab-hidden .footer-showcase-row,
 body.is-tab-hidden .footer-tagline-track,
 body.is-tab-hidden .footer-contact-bg-row,
-body.is-tab-hidden .slider-track,
 body.is-tab-hidden .svc-galaxy-bg,
 body.is-tab-hidden .svc-galaxy-stars,
-body.is-tab-hidden .svc-galaxy-stars--far {
+body.is-tab-hidden .svc-galaxy-stars--far,
+body.is-tab-hidden .gallery-strip-galaxy-bg,
+body.is-tab-hidden .gallery-strip-galaxy-stars,
+body.is-tab-hidden .gallery-strip-galaxy-stars--far,
+body.is-tab-hidden .gallery-strip-galaxy-comet {
   animation-play-state: paused;
 }
 
@@ -2978,8 +3326,6 @@ overflow-x: auto;
   .footer-top { flex-direction: column; }
   .footer-showcase { height: 190px; }
   .fsg-tile { width: 150px; }
-  .footer-nav-row { grid-template-columns: 1fr 1fr; }
-  .fnc-label { font-size: 0.78rem; }
   .footer-contact.info-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
   .footer-contact-wrap { padding: 1.25rem 1rem; }
   .footer-contact-bg .fsg-tile { width: 140px; }
@@ -3061,3 +3407,4 @@ overflow-x: auto;
   .svc-item-btn { min-height: 160px; padding: 15px 13px 12px; border-radius: 14px; }
   .svc-item-text { font-size: 0.78rem; }
 }
+  

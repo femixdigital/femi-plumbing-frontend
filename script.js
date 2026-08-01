@@ -6,6 +6,9 @@
 
 /* ─── BACKEND URL ─── */
 const BACKEND_URL = 'https://femix-plumbing-backend.onrender.com/book';
+const SUBSCRIBE_URL = 'https://femix-plumbing-backend.onrender.com/subscribe';
+const STATS_URL = 'https://femix-plumbing-backend.onrender.com/api/stats';
+const VISIT_PING_URL = 'https://femix-plumbing-backend.onrender.com/api/visit/ping';
 
 /* ─── DOM HELPERS ─── */
 const $  = (s, ctx = document) => ctx.querySelector(s);
@@ -47,6 +50,224 @@ document.addEventListener('visibilitychange', () => {
     { rootMargin: '0px 0px -20% 0px', threshold: 0.15 }
   );
   obs.observe(footerNav);
+})();
+
+/* ════════════════════════════════════════════════════
+   GALLERY STRIP — JS-driven infinite scroll with real
+   acceleration/deceleration (a CSS keyframe animation can only be
+   paused/resumed instantly; driving the transform directly via
+   requestAnimationFrame lets speed ease smoothly toward 0 on hover
+   and back up to cruising speed on release, like a physical belt
+   slowing down rather than snapping to a stop).
+════════════════════════════════════════════════════ */
+(function initGalleryScroll() {
+  const track = document.getElementById('sliderTrack');
+  if (!track) return;
+
+  const CRUISE_SPEED = 42;   // px/sec
+  const EASE_RATE     = 3.2; // higher = snappier accel/decel
+
+  let targetSpeed  = CRUISE_SPEED;
+  let currentSpeed = 0;
+  let position     = 0;
+  let halfWidth    = 0;
+  let lastTime     = null;
+  let rafId        = null;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function measure() {
+    // Track content is the unique slide set duplicated once for a
+    // seamless loop — half its scrollWidth is exactly one full cycle.
+    halfWidth = track.scrollWidth / 2;
+  }
+
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    if (document.hidden) { lastTime = now; return; } // don't accumulate a jump on tab return
+    if (lastTime === null) { lastTime = now; return; }
+    const dt = Math.min((now - lastTime) / 1000, 0.1); // clamp to avoid a big jump after a stall
+    lastTime = now;
+
+    currentSpeed += (targetSpeed - currentSpeed) * Math.min(EASE_RATE * dt, 1);
+    position -= currentSpeed * dt;
+    if (halfWidth > 0 && Math.abs(position) >= halfWidth) position += halfWidth;
+    track.style.transform = `translateX(${position}px)`;
+  }
+
+  function start() {
+    if (rafId) return;
+    lastTime = null;
+    rafId = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (!rafId) return;
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  measure();
+  window.addEventListener('resize', measure);
+  // Images loading in can change scrollWidth — remeasure once they're in.
+  track.querySelectorAll('img').forEach(img => {
+    if (img.complete) return;
+    img.addEventListener('load', measure, { once: true });
+  });
+
+  const strip = track.closest('.gallery-strip');
+  strip?.addEventListener('mouseenter', () => { targetSpeed = 0; });
+  strip?.addEventListener('mouseleave', () => { targetSpeed = CRUISE_SPEED; });
+  strip?.addEventListener('touchstart', () => { targetSpeed = 0; }, { passive: true });
+  strip?.addEventListener('touchend',   () => { targetSpeed = CRUISE_SPEED; }, { passive: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else start();
+  });
+
+  if (prefersReducedMotion) {
+    track.style.transform = 'translateX(0)';
+    return; // no motion at all if the user has asked for reduced motion
+  }
+  start();
+})();
+
+/* ════════════════════════════════════════════════════
+   GALLERY LIGHTBOX — full-screen viewer with zoom
+   (buttons + drag-to-pan) and prev/next through the
+   unique photo set (de-duplicated from the doubled
+   marquee list).
+════════════════════════════════════════════════════ */
+(function initGalleryLightbox() {
+  const track = document.getElementById('sliderTrack');
+  const overlay = document.getElementById('galleryLightbox');
+  if (!track || !overlay) return;
+
+  const imgEl     = document.getElementById('lightboxImg');
+  const wrapEl    = document.getElementById('lightboxImgWrap');
+  const counterEl = document.getElementById('lightboxCounter');
+  const closeBtn  = document.getElementById('lightboxClose');
+  const prevBtn   = document.getElementById('lightboxPrev');
+  const nextBtn   = document.getElementById('lightboxNext');
+  const zoomInBtn    = document.getElementById('lightboxZoomIn');
+  const zoomOutBtn   = document.getElementById('lightboxZoomOut');
+  const zoomResetBtn = document.getElementById('lightboxZoomReset');
+
+  // De-duplicate: the strip repeats the same photo set twice for the
+  // seamless loop, but the lightbox should only ever step through each
+  // unique photo once.
+  const allSlideImgs = $$('.slide img', track);
+  const seen = new Set();
+  const uniqueImgs = [];
+  allSlideImgs.forEach(img => {
+    if (seen.has(img.src)) return;
+    seen.add(img.src);
+    uniqueImgs.push(img);
+  });
+
+  let currentIndex = 0;
+  let zoom = 1;
+  let panX = 0, panY = 0;
+  let dragging = false;
+  let dragStartX = 0, dragStartY = 0;
+  const MIN_ZOOM = 1, MAX_ZOOM = 3, ZOOM_STEP = 0.5;
+
+  function applyTransform() {
+    imgEl.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    wrapEl.classList.toggle('is-zoomed', zoom > 1);
+  }
+
+  function resetZoom() {
+    zoom = 1; panX = 0; panY = 0;
+    applyTransform();
+  }
+
+  function render() {
+    const img = uniqueImgs[currentIndex];
+    imgEl.src = img.src;
+    imgEl.alt = img.alt || '';
+    counterEl.textContent = `${currentIndex + 1} / ${uniqueImgs.length}`;
+    resetZoom();
+  }
+
+  function open(index) {
+    currentIndex = index;
+    render();
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+  function close() {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  function next() { currentIndex = (currentIndex + 1) % uniqueImgs.length; render(); }
+  function prev() { currentIndex = (currentIndex - 1 + uniqueImgs.length) % uniqueImgs.length; render(); }
+
+  // Open on click — works regardless of which (duplicated) slide was
+  // clicked, since we match by src back to the unique list.
+  track.addEventListener('click', e => {
+    const slide = e.target.closest('.slide');
+    if (!slide) return;
+    const img = slide.querySelector('img');
+    if (!img) return;
+    const idx = uniqueImgs.findIndex(u => u.src === img.src);
+    open(idx === -1 ? 0 : idx);
+  });
+  // Keyboard-accessible: slides are focusable via tabindex added below
+  track.querySelectorAll('.slide').forEach(slide => {
+    slide.setAttribute('tabindex', '0');
+    slide.setAttribute('role', 'button');
+    slide.setAttribute('aria-label', 'View larger photo');
+    slide.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); slide.click(); }
+    });
+  });
+
+  closeBtn.addEventListener('click', close);
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  document.addEventListener('keydown', e => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowRight') next();
+    else if (e.key === 'ArrowLeft') prev();
+    else if (e.key === '+' || e.key === '=') zoomIn();
+    else if (e.key === '-') zoomOut();
+  });
+
+  function zoomIn()  { zoom = Math.min(MAX_ZOOM, zoom + ZOOM_STEP); applyTransform(); }
+  function zoomOut() {
+    zoom = Math.max(MIN_ZOOM, zoom - ZOOM_STEP);
+    if (zoom === 1) { panX = 0; panY = 0; }
+    applyTransform();
+  }
+  zoomInBtn.addEventListener('click', zoomIn);
+  zoomOutBtn.addEventListener('click', zoomOut);
+  zoomResetBtn.addEventListener('click', resetZoom);
+
+  // Drag-to-pan once zoomed in (pointer events cover mouse + touch)
+  wrapEl.addEventListener('pointerdown', e => {
+    if (zoom <= 1) return;
+    dragging = true;
+    wrapEl.classList.add('is-dragging');
+    dragStartX = e.clientX - panX;
+    dragStartY = e.clientY - panY;
+    wrapEl.setPointerCapture(e.pointerId);
+  });
+  wrapEl.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    panX = e.clientX - dragStartX;
+    panY = e.clientY - dragStartY;
+    applyTransform();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+    wrapEl.addEventListener(evt, () => { dragging = false; wrapEl.classList.remove('is-dragging'); });
+  });
+  // Double-click/tap to toggle zoom
+  wrapEl.addEventListener('dblclick', () => { zoom > 1 ? resetZoom() : (zoom = 2, applyTransform()); });
 })();
 
 /* ════════════════════════════════════════════════════
@@ -910,6 +1131,130 @@ function createCompactDropdown({ triggerId, panelId, valueId, placeholder }) {
   return { getValue: () => value, setValue: select, reset, shake };
 }
 
+/* ════════════════════════════════════════════════════
+   LIVE STATISTICS — real data only, no simulated numbers.
+
+   - "Years of Experience" is computed client-side from the real
+     founding year (2019) — deterministic math from a real fact,
+     never goes stale, needs no backend.
+   - "Active Visitors" and "Projects Completed" are fetched from
+     STATS_URL (GET /api/stats on the existing Render backend).
+     Active Visitors is backed by a real heartbeat ping (see
+     VISIT_PING_URL below) counting sessions seen in the last 5
+     minutes — not a simulation. Projects Completed is a real
+     COUNT(*) of bookings with status "completed" in MongoDB.
+     See the accompanying backend snippet for both endpoints.
+   - "Customer Reviews" and "Average Rating" have NO real data
+     source yet (no reviews database exists) — their cards stay
+     hidden until /api/stats actually returns those two keys, so
+     nothing fabricated is ever shown. Add a reviews collection
+     (or wire the Google Reviews API) and include those keys in
+     the backend response whenever you're ready; the frontend
+     will start displaying them automatically, no code change
+     needed here.
+   - If the backend endpoint isn't deployed yet, or the request
+     fails, the ready-to-populate cards show "—" rather than a
+     guessed number.
+════════════════════════════════════════════════════ */
+(function initLiveStats() {
+  const grid = document.getElementById('liveStatsGrid');
+  if (!grid) return;
+
+  function formatNumber(n, decimals) {
+    return decimals ? n.toFixed(decimals) : Math.round(n).toLocaleString('en-NG');
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function animateCount(el, target, decimals, suffix) {
+    if (prefersReducedMotion) { el.textContent = formatNumber(target, decimals) + suffix; return; }
+    const duration = 1600;
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress); // easeOutExpo
+      el.textContent = formatNumber(target * eased, decimals) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = formatNumber(target, decimals) + suffix;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Reveal-on-scroll wrapper so numbers count up only once they're visible
+  function revealCount(el, target, decimals, suffix) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        animateCount(el, target, decimals, suffix);
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.4 });
+    observer.observe(el);
+  }
+
+  /* ── Years of Experience — real, computed, no API needed ── */
+  const yearsEl = document.getElementById('statYearsExperience');
+  if (yearsEl) {
+    const foundedYear = parseInt(yearsEl.dataset.foundedYear || '2019', 10);
+    const years = new Date().getFullYear() - foundedYear;
+    revealCount(yearsEl, years, 0, '+');
+  }
+
+  /* ── Active Visitors + Projects Completed — real, via backend ── */
+  const activeCard      = grid.querySelector('[data-stat-key="activeVisitors"]');
+  const projectsCard     = grid.querySelector('[data-stat-key="projectsCompleted"]');
+  const reviewsCard      = grid.querySelector('[data-stat-key="customerReviews"]');
+  const ratingCard       = grid.querySelector('[data-stat-key="averageRating"]');
+
+  fetch(STATS_URL)
+    .then(r => { if (!r.ok) throw new Error('stats endpoint returned ' + r.status); return r.json(); })
+    .then(data => {
+      if (activeCard && typeof data.activeVisitors === 'number') {
+        revealCount(activeCard.querySelector('.stat-value'), data.activeVisitors, 0, '');
+      }
+      if (projectsCard && typeof data.projectsCompleted === 'number') {
+        revealCount(projectsCard.querySelector('.stat-value'), data.projectsCompleted, 0, '+');
+      }
+      // Only shown once the backend actually provides real figures —
+      // never fabricated on the frontend.
+      if (reviewsCard && typeof data.customerReviews === 'number') {
+        reviewsCard.hidden = false;
+        revealCount(reviewsCard.querySelector('.stat-value'), data.customerReviews, 0, '+');
+      }
+      if (ratingCard && typeof data.averageRating === 'number') {
+        ratingCard.hidden = false;
+        revealCount(ratingCard.querySelector('.stat-value'), data.averageRating, 1, '★');
+      }
+    })
+    .catch(err => {
+      console.warn('Live stats unavailable:', err.message);
+      // Leave the placeholder "—" in place rather than guessing a number.
+    });
+
+  /* ── Real heartbeat ping for Active Visitors ──
+     A random per-browser session id (persisted in localStorage) pings
+     the backend on load and every 45s while the tab is visible; the
+     backend counts distinct sessions seen in the last 5 minutes. This
+     is a real (if simple) visit signal, not a simulation. */
+  (function heartbeat() {
+    let sessionId = localStorage.getItem('femix_session_id');
+    if (!sessionId) {
+      sessionId = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('femix_session_id', sessionId);
+    }
+    function ping() {
+      if (document.hidden) return;
+      fetch(VISIT_PING_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      }).catch(() => {}); // best-effort — a failed ping just means one less data point
+    }
+    ping();
+    setInterval(ping, 45000);
+  })();
+})();
+
 (function initEstimator() {
   const calcBtn   = $('#estCalcBtn');
   const bookBtn   = $('#estBookBtn');
@@ -1050,6 +1395,192 @@ document.addEventListener('click', e => {
     });
   }
 });
+
+/* ── Footer newsletter form ──
+   POSTs to /subscribe on the same Render backend the booking form
+   already uses. Requires that endpoint to exist server-side — see
+   the backend snippet provided alongside this change if it doesn't
+   yet. Fails gracefully (with an honest message) if the endpoint
+   isn't there yet, rather than pretending to succeed. */
+document.getElementById('footerNewsletterForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  const emailInput = document.getElementById('ftrNewsletterEmail');
+  const btn = form.querySelector('.ftr-newsletter-btn');
+  const note = document.getElementById('ftrNewsletterNote');
+  if (!emailInput || !note) return;
+
+  const email = emailInput.value.trim();
+  if (!email) return;
+
+  btn?.setAttribute('disabled', 'true');
+  note.hidden = false;
+  note.textContent = 'Subscribing…';
+
+  try {
+    const res = await fetch(SUBSCRIBE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.success !== false) {
+      note.textContent = "You're subscribed! Watch your inbox for plumbing tips and offers.";
+      emailInput.value = '';
+    } else if (res.status === 409) {
+      note.textContent = "You're already on the list — thanks for sticking around!";
+    } else {
+      throw new Error(data.message || 'Subscribe failed');
+    }
+  } catch (err) {
+    note.textContent = "Something went wrong — please try again, or reach us directly via WhatsApp.";
+    console.error('Newsletter subscribe error:', err.message);
+  } finally {
+    btn?.removeAttribute('disabled');
+  }
+});
+
+/* ════════════════════════════════════════════════════
+   10e. SITE SEARCH — sticky bar below the gallery strip.
+   Pure client-side: a small curated index of pages, services,
+   tools, and footer company-info topics, filtered live as the
+   person types. Selecting a result navigates or scrolls-and-
+   opens the matching destination — no backend involved.
+════════════════════════════════════════════════════ */
+function goToEstimator() {
+  if (currentView !== 'home') navigateTo('home');
+  setTimeout(() => {
+    document.getElementById('estimator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, currentView !== 'home' ? 350 : 0);
+}
+function goToBookingForm() {
+  if (currentView !== 'home') navigateTo('home');
+  setTimeout(() => {
+    document.getElementById('contactCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, currentView !== 'home' ? 350 : 0);
+}
+function goToFounderSpotlight() {
+  if (currentView !== 'home') navigateTo('home');
+  setTimeout(() => {
+    document.querySelector('.ftr-founder-spotlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, currentView !== 'home' ? 350 : 0);
+}
+
+const SEARCH_INDEX = [
+  { label: 'Home',                    cat: 'Page',    icon: '🏠', keywords: 'home main homepage start',                          action: () => navigateTo('home') },
+  { label: 'Services',                cat: 'Page',    icon: '🔧', keywords: 'services plumbing residential commercial industrial maintenance', action: () => navigateTo('services') },
+  { label: 'Gallery',                 cat: 'Page',    icon: '🖼️', keywords: 'gallery photos work portfolio pictures',              action: () => navigateTo('gallery') },
+  { label: 'About Us',                cat: 'Page',    icon: '🏅', keywords: 'about us story company who we are',                  action: () => navigateTo('about') },
+  { label: 'Reviews',                 cat: 'Page',    icon: '⭐', keywords: 'reviews testimonials clients feedback rating',        action: () => navigateTo('reviews') },
+  { label: 'Book a Service / Contact',cat: 'Page',    icon: '💬', keywords: 'contact book booking appointment call whatsapp reach us', action: goToBookingForm },
+  { label: 'Get an Instant Estimate', cat: 'Tool',     icon: '💰', keywords: 'estimate price quote calculator cost how much',      action: goToEstimator },
+  { label: "Founder's Profile",       cat: 'Company',  icon: '👤', keywords: 'founder ceo owner nuhn wasiu femi profile',          action: goToFounderSpotlight },
+
+  { label: 'Leak Detection',              cat: 'Service', icon: '💧', keywords: 'leak detection diagnostic water loss', action: () => navigateTo('services') },
+  { label: 'Pressure Testing',            cat: 'Service', icon: '🧪', keywords: 'pressure testing pipe check',           action: () => navigateTo('services') },
+  { label: 'Water Engineering',           cat: 'Service', icon: '⚙️', keywords: 'water engineering systems design',       action: () => navigateTo('services') },
+  { label: 'Borehole Pump Installation',  cat: 'Service', icon: '🚰', keywords: 'borehole pump installation water tank', action: () => navigateTo('services') },
+  { label: 'Plumbing Maintenance',        cat: 'Service', icon: '🔩', keywords: 'plumbing maintenance service contract', action: () => navigateTo('services') },
+  { label: 'Building Pipe Installation',  cat: 'Service', icon: '🔧', keywords: 'building pipe installation new construction', action: () => navigateTo('services') },
+];
+
+(function initSiteSearch() {
+  const bar     = document.getElementById('siteSearchBar');
+  const input   = document.getElementById('siteSearchInput');
+  const results = document.getElementById('siteSearchResults');
+  const clearBtn = document.getElementById('siteSearchClear');
+  if (!bar || !input || !results || !clearBtn) return;
+
+  let activeIndex = -1;
+  let currentMatches = [];
+
+  function renderResults(matches) {
+    currentMatches = matches;
+    activeIndex = -1;
+    if (!matches.length) {
+      results.innerHTML = '<div class="site-search-empty">No matches — try a different term.</div>';
+      results.hidden = false;
+      return;
+    }
+    results.innerHTML = matches.slice(0, 8).map((m, i) => `
+      <button type="button" class="site-search-item" data-idx="${i}" role="option">
+        <span class="site-search-item-icon" aria-hidden="true">${m.icon}</span>
+        <span class="site-search-item-text">
+          <span class="site-search-item-label">${m.label}</span>
+          <span class="site-search-item-cat">${m.cat}</span>
+        </span>
+      </button>
+    `).join('');
+    results.hidden = false;
+  }
+
+  function runSearch(raw) {
+    const q = raw.trim().toLowerCase();
+    clearBtn.hidden = !q;
+    if (!q) {
+      results.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    const matches = SEARCH_INDEX.filter(item =>
+      item.label.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q)
+    );
+    input.setAttribute('aria-expanded', 'true');
+    renderResults(matches);
+  }
+
+  function selectMatch(match) {
+    if (!match) return;
+    match.action();
+    results.hidden = true;
+    input.value = '';
+    clearBtn.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  input.addEventListener('input', () => runSearch(input.value));
+  input.addEventListener('focus', () => { if (input.value.trim()) runSearch(input.value); });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    results.hidden = true;
+    clearBtn.hidden = true;
+    input.focus();
+  });
+
+  results.addEventListener('click', e => {
+    const btn = e.target.closest('.site-search-item');
+    if (!btn) return;
+    selectMatch(currentMatches[Number(btn.dataset.idx)]);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (results.hidden || !currentMatches.length) return;
+    const items = [...results.querySelectorAll('.site-search-item')];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
+      items[activeIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
+      items[activeIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      selectMatch(currentMatches[activeIndex] ?? currentMatches[0]);
+    } else if (e.key === 'Escape') {
+      results.hidden = true;
+      input.blur();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!bar.contains(e.target)) results.hidden = true;
+  });
+})();
 
 /* ════════════════════════════════════════════════════
    11. REVIEW CAROUSEL
