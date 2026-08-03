@@ -7,8 +7,6 @@
 /* ─── BACKEND URL ─── */
 const BACKEND_URL = 'https://femix-plumbing-backend.onrender.com/book';
 const SUBSCRIBE_URL = 'https://femix-plumbing-backend.onrender.com/subscribe';
-const STATS_URL = 'https://femix-plumbing-backend.onrender.com/api/stats';
-const VISIT_PING_URL = 'https://femix-plumbing-backend.onrender.com/api/visit/ping';
 
 /* ─── DOM HELPERS ─── */
 const $  = (s, ctx = document) => ctx.querySelector(s);
@@ -1131,129 +1129,6 @@ function createCompactDropdown({ triggerId, panelId, valueId, placeholder }) {
   return { getValue: () => value, setValue: select, reset, shake };
 }
 
-/* ════════════════════════════════════════════════════
-   LIVE STATISTICS — real data only, no simulated numbers.
-
-   - "Years of Experience" is computed client-side from the real
-     founding year (2019) — deterministic math from a real fact,
-     never goes stale, needs no backend.
-   - "Active Visitors" and "Projects Completed" are fetched from
-     STATS_URL (GET /api/stats on the existing Render backend).
-     Active Visitors is backed by a real heartbeat ping (see
-     VISIT_PING_URL below) counting sessions seen in the last 5
-     minutes — not a simulation. Projects Completed is a real
-     COUNT(*) of bookings with status "completed" in MongoDB.
-     See the accompanying backend snippet for both endpoints.
-   - "Customer Reviews" and "Average Rating" have NO real data
-     source yet (no reviews database exists) — their cards stay
-     hidden until /api/stats actually returns those two keys, so
-     nothing fabricated is ever shown. Add a reviews collection
-     (or wire the Google Reviews API) and include those keys in
-     the backend response whenever you're ready; the frontend
-     will start displaying them automatically, no code change
-     needed here.
-   - If the backend endpoint isn't deployed yet, or the request
-     fails, the ready-to-populate cards show "—" rather than a
-     guessed number.
-════════════════════════════════════════════════════ */
-(function initLiveStats() {
-  const grid = document.getElementById('liveStatsGrid');
-  if (!grid) return;
-
-  function formatNumber(n, decimals) {
-    return decimals ? n.toFixed(decimals) : Math.round(n).toLocaleString('en-NG');
-  }
-
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function animateCount(el, target, decimals, suffix) {
-    if (prefersReducedMotion) { el.textContent = formatNumber(target, decimals) + suffix; return; }
-    const duration = 1600;
-    const start = performance.now();
-    function tick(now) {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress); // easeOutExpo
-      el.textContent = formatNumber(target * eased, decimals) + suffix;
-      if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = formatNumber(target, decimals) + suffix;
-    }
-    requestAnimationFrame(tick);
-  }
-
-  // Reveal-on-scroll wrapper so numbers count up only once they're visible
-  function revealCount(el, target, decimals, suffix) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        animateCount(el, target, decimals, suffix);
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0.4 });
-    observer.observe(el);
-  }
-
-  /* ── Years of Experience — real, computed, no API needed ── */
-  const yearsEl = document.getElementById('statYearsExperience');
-  if (yearsEl) {
-    const foundedYear = parseInt(yearsEl.dataset.foundedYear || '2019', 10);
-    const years = new Date().getFullYear() - foundedYear;
-    revealCount(yearsEl, years, 0, '+');
-  }
-
-  /* ── Active Visitors + Projects Completed — real, via backend ── */
-  const activeCard      = grid.querySelector('[data-stat-key="activeVisitors"]');
-  const projectsCard     = grid.querySelector('[data-stat-key="projectsCompleted"]');
-  const reviewsCard      = grid.querySelector('[data-stat-key="customerReviews"]');
-  const ratingCard       = grid.querySelector('[data-stat-key="averageRating"]');
-
-  fetch(STATS_URL)
-    .then(r => { if (!r.ok) throw new Error('stats endpoint returned ' + r.status); return r.json(); })
-    .then(data => {
-      if (activeCard && typeof data.activeVisitors === 'number') {
-        revealCount(activeCard.querySelector('.stat-value'), data.activeVisitors, 0, '');
-      }
-      if (projectsCard && typeof data.projectsCompleted === 'number') {
-        revealCount(projectsCard.querySelector('.stat-value'), data.projectsCompleted, 0, '+');
-      }
-      // Only shown once the backend actually provides real figures —
-      // never fabricated on the frontend.
-      if (reviewsCard && typeof data.customerReviews === 'number') {
-        reviewsCard.hidden = false;
-        revealCount(reviewsCard.querySelector('.stat-value'), data.customerReviews, 0, '+');
-      }
-      if (ratingCard && typeof data.averageRating === 'number') {
-        ratingCard.hidden = false;
-        revealCount(ratingCard.querySelector('.stat-value'), data.averageRating, 1, '★');
-      }
-    })
-    .catch(err => {
-      console.warn('Live stats unavailable:', err.message);
-      // Leave the placeholder "—" in place rather than guessing a number.
-    });
-
-  /* ── Real heartbeat ping for Active Visitors ──
-     A random per-browser session id (persisted in localStorage) pings
-     the backend on load and every 45s while the tab is visible; the
-     backend counts distinct sessions seen in the last 5 minutes. This
-     is a real (if simple) visit signal, not a simulation. */
-  (function heartbeat() {
-    let sessionId = localStorage.getItem('femix_session_id');
-    if (!sessionId) {
-      sessionId = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem('femix_session_id', sessionId);
-    }
-    function ping() {
-      if (document.hidden) return;
-      fetch(VISIT_PING_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      }).catch(() => {}); // best-effort — a failed ping just means one less data point
-    }
-    ping();
-    setInterval(ping, 45000);
-  })();
-})();
 
 (function initEstimator() {
   const calcBtn   = $('#estCalcBtn');

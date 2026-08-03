@@ -70,7 +70,11 @@
   /* Layout */
   --header-h:  62px;
   --ticker-h:  26px;
-  --nav-total: calc(var(--header-h) + var(--ticker-h));
+  /* +1px accounts for #header's own border-bottom, which wasn't
+     previously counted here — without it, content starting right at
+     the old nav-total offset could show a hairline overlap with the
+     ticker bar at the seam. */
+  --nav-total: calc(var(--header-h) + var(--ticker-h) + 1px);
   --container: 1160px;
   --radius:    10px;
   --radius-lg: 16px;
@@ -247,12 +251,6 @@ input, textarea, [contenteditable] {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.g-text {
-  background: var(--grad-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 .glass {
   background: var(--glass-bg);
@@ -409,11 +407,6 @@ input, textarea, [contenteditable] {
   position: relative; width: 56px; height: 56px;
   display: flex; align-items: center; justify-content: center;
 }
-.loader-circle { animation: arcRotate 1.1s linear infinite; }
-@keyframes arcRotate {
-  from { stroke-dashoffset: 163; }
-  to   { stroke-dashoffset: 0; }
-}
 .loader-drop {
   position: absolute; font-size: 1.3rem;
   animation: dropPulse 1.1s ease-in-out infinite;
@@ -482,14 +475,14 @@ input, textarea, [contenteditable] {
 ────────────────────────────────────────── */
 .gallery-strip {
   position: relative; width: 100%;
-  padding: 7.5rem 0; overflow: hidden; z-index: 5;
+  padding: 3.5rem 0; overflow: hidden; z-index: 5;
   background: var(--bg-raised); border-bottom: 1px solid var(--glass-border);
   isolation: isolate;
 }
 .gallery-strip::before,
 .gallery-strip::after {
   content: ''; position: absolute; top: 10; bottom: 0;
-  width: 160px; z-index: 3; pointer-events: none;
+  width: 36px; z-index: 3; pointer-events: none;
 }
 .gallery-strip::before {
   left: 0; background: linear-gradient(to right, var(--bg-raised), transparent);
@@ -538,7 +531,7 @@ input, textarea, [contenteditable] {
   background-size: 140% 140%; background-position: 20% 30%;
   opacity: 0.4;
   animation: starTwinkle 4.8s ease-in-out infinite alternate-reverse, starDrift 75s linear infinite;
-  filter: blur(0.3px);
+  filter: blur(.3px);
 }
 /* A single slow-drifting streak of light for extra richness — pure
    transform animation (translate + opacity), negligible cost. */
@@ -564,9 +557,9 @@ input, textarea, [contenteditable] {
 }
 
 .slide {
-  height: 240px; flex-shrink: 0; border-radius: var(--radius-xl);
+  height: 20px; flex-shrink: 0; border-radius: 26px;
   overflow: hidden; border: 1px solid var(--glass-border2);
-  box-shadow: var(--sh-md);
+  box-shadow: var(--sh-lg);
   transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), box-shadow 0.55s cubic-bezier(0.22,1,0.36,1), border-color 0.55s var(--ease);
   cursor: pointer;
   position: relative;
@@ -595,13 +588,13 @@ input, textarea, [contenteditable] {
 .slide:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
 @media (max-width: 900px) {
-  .slide { height: 190px; }
+  .slide { height: 220px; }
 }
 @media (max-width: 640px) {
-  .slide { height: 155px; }
+  .slide { height: 200px; border-radius: 20px; }
   .slider-track { gap: 14px; }
-  .gallery-strip { padding: 4.5rem 0; }
-  .gallery-strip::before, .gallery-strip::after { width: 90px; }
+  .gallery-strip { padding: 2.5rem 0; }
+  .gallery-strip::before, .gallery-strip::after { width: 200px; }
 }
 
 /* ──────────────────────────────────────────
@@ -618,7 +611,7 @@ input, textarea, [contenteditable] {
 }
 .lightbox-overlay.open { opacity: 1; visibility: visible; }
 .lightbox-stage {
-  position: relative; width: 100%; height: 100%;
+  position: relative; width: 60%; height: 60%;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
@@ -1002,15 +995,6 @@ input, textarea, [contenteditable] {
   transition: all var(--t1); font-size: 0.85rem;
 }
 .mob-drawer-close:hover { background: var(--glass-bg2); color: var(--text-primary); }
-.mob-drawer-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.mob-link {
-  display: flex; align-items: center; gap: 14px;
-  font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
-  letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary);
-  padding: 0.7rem 0.9rem; border-radius: var(--radius); transition: all var(--t1);
-}
-.mob-link span { font-family: 'Space Mono', monospace; font-size: 0.52rem; color: var(--text-muted); }
-.mob-link:hover { background: var(--glass-bg2); color: var(--gold); }
 .mob-drawer-actions {
   display: flex; flex-direction: column; gap: 8px;
   margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--glass-border);
@@ -1025,10 +1009,6 @@ input, textarea, [contenteditable] {
 .mob-action-btn:hover { border-color: var(--gold); background: var(--gold-glow); }
 .mob-action-wa { background: rgba(31,200,116,0.08); border-color: rgba(31,200,116,0.2); color: #25D366; }
 .mob-action-wa:hover { background: rgba(31,200,116,0.14); }
-.mob-drawer-info {
-  font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--text-muted);
-  text-align: center; padding-top: 0.9rem; letter-spacing: 0.1em;
-}
 .mob-overlay {
   position: fixed; inset: 0; z-index: 899;
   background: rgba(7,10,20,0.72); backdrop-filter: blur(4px);
@@ -1071,8 +1051,8 @@ input, textarea, [contenteditable] {
 .menu-label { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: 1px; }
 
 .hero-section {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  padding: 5rem 2rem 4rem; overflow: hidden; position: relative;
+  min-height: 86vh; display: flex; align-items: center; justify-content: center;
+  padding: 3.5rem 2rem 2.5rem; overflow: hidden; position: relative;
 }
 
 .hero-grid-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
@@ -1097,6 +1077,40 @@ input, textarea, [contenteditable] {
 .hero-banner {
   position: absolute; inset: 0; z-index: 1; overflow: hidden;
 }
+
+/* Subtle galaxy-style depth layer — twinkling stars + soft ambient
+   glow, sitting above the darkened hero photo but well below the
+   readable heading/CTA content, so it adds depth without ever
+   competing with text. Transform/opacity only, so it's cheap. */
+.hero-galaxy-stars {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 15% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.2px 1.2px at 85% 15%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.5px 1.5px at 25% 65%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.2px 1.2px at 70% 75%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.4px 1.4px at 92% 55%, rgba(232,200,110,0.6), transparent),
+    radial-gradient(1.2px 1.2px at 8% 85%, rgba(122,159,255,0.55), transparent),
+    radial-gradient(1.4px 1.4px at 55% 30%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.2px 1.2px at 40% 90%, rgba(255,255,255,0.5), transparent);
+  background-size: 100% 100%;
+  animation: starTwinkle 4s ease-in-out infinite alternate;
+  opacity: 0.55;
+}
+.hero-galaxy-glow {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, var(--gold-glow) 0%, transparent 38%),
+    radial-gradient(circle at 82% 65%, var(--blue-glow) 0%, transparent 42%);
+  filter: blur(50px);
+  opacity: 0.5;
+  animation: heroGlowDrift 18s ease-in-out infinite;
+}
+@keyframes heroGlowDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(2%, -3%) scale(1.08); }
+}
+
 .hero-banner-slides { position: absolute; inset: 0; }
 .hero-banner-slide {
   position: absolute; inset: 0; opacity: 0;
@@ -1324,16 +1338,6 @@ input, textarea, [contenteditable] {
 }
 .panel-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 22px var(--gold-ring); }
 
-.panel-list { display: flex; flex-direction: column; gap: 0; }
-.panel-list li {
-  padding: 0.72rem 0; border-bottom: 1px solid var(--glass-border);
-  font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;
-  display: flex; align-items: center; gap: 10px; transition: color var(--t1);
-}
-.panel-list li:last-child { border-bottom: none; }
-.panel-list li::before { content: '→'; color: var(--gold); font-size: 0.7rem; flex-shrink: 0; }
-.panel-list li:hover { color: var(--text-primary); }
-
 .emg-panel {
   border-radius: var(--radius-xl); padding: 2rem; position: relative; overflow: hidden;
   border: 1px solid rgba(240,64,64,0.18);
@@ -1559,7 +1563,6 @@ input, textarea, [contenteditable] {
    collected here — settlement still happens in
    person/by transfer; this only records intent.
 ────────────────────────────────────────── */
-.payment-field { margin-bottom: 1.1rem; }
 .payment-card {
   margin-top: 0.4rem;
   border-radius: var(--radius-lg);
@@ -2150,10 +2153,6 @@ input, textarea, [contenteditable] {
      to stay accurate, and the mismatch was causing a visible layout
      snap/jump right as it scrolled into view. Not worth the speed win. */
 }
-.footer-top {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem;
-}
 .footer-wordmark {
   font-family: 'Syne', sans-serif; font-weight: 800;
   font-size: 1.5rem; letter-spacing: 0.01em; line-height: 1; color: var(--text-primary);
@@ -2191,13 +2190,6 @@ input, textarea, [contenteditable] {
   letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
   border: 1px solid rgba(201,168,76,0.28); padding: 3px 8px; border-radius: 2px;
 }
-.footer-links { display: flex; flex-direction: column; gap: 6px; }
-.footer-links a {
-  font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);
-  transition: color var(--t1); letter-spacing: 0.02em;
-}
-.footer-links a:hover { color: var(--gold); }
-
 /* ──────────────────────────────────────────
    FOOTER SHOWCASE — 3 rows of plumbing-work
    photos sliding in alternating directions,
@@ -2212,7 +2204,7 @@ input, textarea, [contenteditable] {
   justify-content: center;
   gap: 8px;
   height: 260px;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: #05070D;
@@ -2283,7 +2275,7 @@ input, textarea, [contenteditable] {
 .ftr-founder-spotlight {
   display: flex; gap: 14px; align-items: center;
   max-width: 340px;
-  margin: 0 0 1.5rem auto; /* pushes it to the right on desktop */
+  margin: 0 0 1rem auto; /* pushes it to the right on desktop */
   padding: 0.9rem 1.1rem;
   border-radius: var(--radius-lg);
   position: relative; overflow: hidden;
@@ -2311,7 +2303,7 @@ input, textarea, [contenteditable] {
 }
 
 /* Newsletter — standalone centered bar */
-.ftr-newsletter-bar { display: flex; justify-content: center; margin-bottom: 1.75rem; }
+.ftr-newsletter-bar { display: flex; justify-content: center; margin-bottom: 1.1rem; }
 .ftr-newsletter { max-width: 360px; width: 100%; text-align: center; }
 .ftr-newsletter-label {
   display: block; font-family: 'Space Mono', monospace; font-size: 0.58rem;
@@ -2342,7 +2334,7 @@ input, textarea, [contenteditable] {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 .footer-nav-card {
   display: flex; align-items: center; gap: 10px;
@@ -2393,49 +2385,6 @@ input, textarea, [contenteditable] {
   .ftr-founder-spotlight { margin: 0 auto 1.5rem; max-width: 100%; }
 }
 
-/* ── Footer contact cards: 3-column grid floating over a
-   sliding photo backdrop with a deep inset shadow, so the
-   cards read as "glass" panels hovering above the work photos. ── */
-.footer-contact-wrap {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding: 2rem 1.75rem;
-  /* Full-bleed: the sliding photo band spans the entire viewport width,
-     breaking out of the page's usual container padding, for more visual
-     presence — while the cards inside stay readable via their own max-width. */
-  width: 100vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
-  border-radius: 0;
-  flex: 1 1 100%;
-}
-.footer-contact-bg {
-  position: absolute; inset: 0; z-index: -1;
-  display: flex; align-items: center;
-}
-.footer-contact-bg-row {
-  display: flex; gap: 8px; width: max-content; height: 100%;
-  animation: fsgSlideLeft 46s linear infinite;
-  will-change: transform;
-}
-.footer-contact-bg .fsg-tile { width: 230px; box-shadow: none; border-radius: 0; }
-.footer-contact-bg .fsg-tile img { filter: saturate(0.6) brightness(0.4); }
-.footer-contact-bg-scrim {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(4,6,11,0.86), rgba(4,6,11,0.93));
-  box-shadow: inset 0 0 90px 30px rgba(0,0,0,0.75);
-}
-
-.footer-contact.info-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  max-width: var(--container);
-  margin: 0 auto;
-}
-.footer-contact .info-card { background: rgba(16,20,35,0.72); }
-.footer-contact .info-val { white-space: normal; }
 .footer-bottom { border-top: 1px solid var(--glass-border); padding-top: 1.25rem; }
 .footer-copy {
   font-family: 'Space Mono', monospace; font-size: 0.5rem;
@@ -2471,14 +2420,6 @@ input, textarea, [contenteditable] {
   transition: all var(--t1); cursor: pointer;
 }
 .modal-x:hover { background: var(--glass-bg2); color: var(--text-primary); }
-
-.modal-head { margin-bottom: 1.5rem; }
-.modal-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
-.modal-head h3 {
-  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
-  color: var(--text-primary); margin-bottom: 4px;
-}
-.modal-head p { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; }
 
 .success-ring {
   width: 64px; height: 64px; border-radius: 50%;
@@ -2526,9 +2467,6 @@ body.is-footer-in-view .fab-cluster { opacity: 0; transform: translateY(12px) sc
 .fab-wa:hover   { transform: scale(1.12) translateY(-2px); box-shadow: 0 10px 30px rgba(37,211,102,0.4); }
 .fab-call { background: var(--grad-gold); color: var(--text-inverse); }
 .fab-call:hover { transform: scale(1.12) translateY(-2px); box-shadow: 0 10px 30px var(--gold-ring); }
-.fab-top  { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--glass-border2); font-size: 0.85rem; }
-.fab-top:hover { background: var(--gold); color: var(--text-inverse); border-color: var(--gold); transform: translateY(-2px); }
-.fab-top.visible { opacity: 1 !important; pointer-events: auto !important; }
 
 .theme-switch {
   position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 900;
@@ -2679,57 +2617,14 @@ body {
 
 .spa-quicknav-section {
   padding-top: 0;
-  padding-bottom: 4rem;
+  padding-bottom: 2rem;
 }
 
 /* ──────────────────────────────────────────
    INSTANT QUOTE ESTIMATOR
 ────────────────────────────────────────── */
-/* ──────────────────────────────────────────
-   LIVE STATISTICS — animated count-up cards
-────────────────────────────────────────── */
-.live-stats-section { padding-top: 1rem; padding-bottom: 1rem; }
-.live-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-}
-.stat-card {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; text-align: center;
-  padding: 1.5rem 1rem;
-  border-radius: var(--radius-lg);
-  position: relative; overflow: hidden;
-  transition: transform var(--t2), border-color var(--t2), box-shadow var(--t2);
-}
-.stat-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--grad-gold); opacity: 0.7;
-}
-.stat-card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: var(--sh-sm), 0 0 0 1px var(--gold-ring); }
-.stat-value {
-  font-family: 'Syne', sans-serif; font-weight: 900;
-  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
-  background: var(--grad-gold);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.stat-label {
-  font-family: 'Space Mono', monospace; font-size: 0.6rem;
-  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
-}
 
-@media (max-width: 900px) {
-  .live-stats-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 640px) {
-  .live-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card { padding: 1.1rem 0.75rem; }
-}
-
-.estimator-section { padding-top: 0.5rem; padding-bottom: 3rem; }
+.estimator-section { padding-top: 0.5rem; padding-bottom: 1.5rem; }
 .estimator-card {
   max-width: 560px;
   margin: 0 auto;
@@ -2800,9 +2695,8 @@ body {
 .spa-quicknav-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 1.4rem;
 }
-
 /* ──────────────────────────────────────────
    GALLERY BANNER — enlarged, full-bleed photo
    band with a dark scrim and the title/CTA
@@ -2823,7 +2717,7 @@ body {
   overflow: hidden;
   border-top: 1px solid var(--glass-border);
   border-bottom: 1px solid var(--glass-border);
-  margin-top: 1.75rem;
+  margin-top: 1rem;
   cursor: pointer;
   text-align: center;
   font-family: inherit;
@@ -2916,67 +2810,73 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.4rem;
-  padding: 1.4rem 1.5rem 1.6rem;
-  border-radius: 28px;
+  gap: 0.35rem;
+  padding: 1.15rem 1.25rem 1.3rem;
+  border-radius: 24px;
   cursor: pointer;
-  transition: transform var(--t2), box-shadow var(--t2), border-color var(--t2);
-  border: 2px solid var(--glass-border);
+  transition: transform var(--t2), box-shadow var(--t2), border-color var(--t2), background var(--t2);
+  border: 1.5px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
   text-align: left;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--sh-sm);
+  box-shadow: var(--sh-md);
 }
 .spa-qcard::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
   background: var(--grad-gold);
-  opacity: 0.45;
+  opacity: 0.5;
   transition: opacity var(--t2);
 }
 .spa-qcard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--sh-md), 0 0 0 1px var(--gold);
+  transform: translateY(-6px);
+  box-shadow: var(--sh-xl), 0 0 28px var(--gold-glow), 0 0 0 1px var(--gold);
   border-color: var(--gold);
+  background: var(--glass-bg2);
 }
 .spa-qcard:hover::before { opacity: 1; }
 .spa-qcard:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(-2px) scale(0.98);
   border-color: var(--gold);
-  box-shadow: var(--sh-sm), 0 0 0 1px var(--gold);
+  box-shadow: var(--sh-md), 0 0 0 1px var(--gold);
 }
 
 .spa-qcard-icon {
-  font-size: 1.75rem;
+  font-size: 1.45rem;
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
+  filter: drop-shadow(0 2px 6px var(--gold-glow));
 }
 .spa-qcard-title {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   color: var(--text-primary);
   display: block;
+  letter-spacing: 0.01em;
 }
 .spa-qcard-sub {
   font-family: 'Space Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.1em;
+  font-size: 0.5rem;
+  letter-spacing: 0.09em;
   color: var(--text-muted);
   text-transform: uppercase;
   display: block;
-  padding-right: 2rem; /* keep clear of the arrow badge */
+  padding-right: 1.8rem; /* keep clear of the arrow badge */
 }
 /* Always-visible circular arrow badge — the primary "this is a button"
    signal, since hover-only affordances are invisible on touch devices. */
 .spa-qcard-arrow {
   position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  width: 30px; height: 30px;
+  bottom: 0.85rem;
+  right: 0.85rem;
+  width: 26px; height: 26px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: var(--text-inverse);
   background: var(--grad-gold);
   box-shadow: 0 2px 10px var(--gold-glow);
@@ -2985,7 +2885,7 @@ body {
   transition: transform var(--t2), box-shadow var(--t2);
 }
 .spa-qcard:hover .spa-qcard-arrow {
-  transform: translateX(2px) scale(1.08);
+  transform: translateX(2px) scale(1.1);
   box-shadow: 0 4px 16px var(--gold-ring);
 }
 .spa-qcard:active .spa-qcard-arrow { transform: scale(0.94); }
@@ -2999,7 +2899,6 @@ body {
 .spa-view--page .services-section {
   background: transparent;
 }
-
 /* ──────────────────────────────────────────
    SERVICE-ITEM GALAXY GRID (4 across, always)
    Moved in from an inline <style> block so it
@@ -3249,9 +3148,9 @@ body {
 @media (prefers-reduced-motion: reduce){
   .svc-galaxy-bg, .svc-galaxy-stars, .svc-galaxy-stars--far,
   .gallery-strip-galaxy-bg, .gallery-strip-galaxy-stars, .gallery-strip-galaxy-stars--far,
-  .gallery-strip-galaxy-comet{ animation:none; }
+  .gallery-strip-galaxy-comet, .hero-galaxy-stars, .hero-galaxy-glow{ animation:none; }
   .orb, .badge-pulse, .status-dot, .ticker-inner, .hero-banner-slide,
-  .footer-showcase-row, .footer-tagline-track, .footer-contact-bg-row,
+  .footer-showcase-row, .footer-tagline-track,
   .scroll-line, .emg-icon { animation: none !important; }
 }
 /* Decorative, always-on animations add up on a phone's battery/CPU for
@@ -3264,14 +3163,15 @@ body.is-tab-hidden .ticker-inner,
 body.is-tab-hidden .hero-banner-slide,
 body.is-tab-hidden .footer-showcase-row,
 body.is-tab-hidden .footer-tagline-track,
-body.is-tab-hidden .footer-contact-bg-row,
 body.is-tab-hidden .svc-galaxy-bg,
 body.is-tab-hidden .svc-galaxy-stars,
 body.is-tab-hidden .svc-galaxy-stars--far,
 body.is-tab-hidden .gallery-strip-galaxy-bg,
 body.is-tab-hidden .gallery-strip-galaxy-stars,
 body.is-tab-hidden .gallery-strip-galaxy-stars--far,
-body.is-tab-hidden .gallery-strip-galaxy-comet {
+body.is-tab-hidden .gallery-strip-galaxy-comet,
+body.is-tab-hidden .hero-galaxy-stars,
+body.is-tab-hidden .hero-galaxy-glow {
   animation-play-state: paused;
 }
 
@@ -3307,8 +3207,6 @@ overflow-x: auto;
   .svc-item-grid::-webkit-scrollbar { display: none; }
   .svc-item-btn { scroll-snap-align: start; min-height: 190px; }
   .svc-galaxy-wrap { padding: 24px 16px 20px; }
-  .footer-contact.info-cards { grid-template-columns: repeat(3, 1fr); }
-  .footer-contact-wrap { padding: 1.75rem 1.25rem; }
   .payment-methods { gap: 6px; }
 }
 
@@ -3323,16 +3221,8 @@ overflow-x: auto;
   .hstat-val { font-size: 1.25rem; }
   .hstat-lbl { font-size: 0.38rem; letter-spacing: 0.08em; }
   .hstat-sep { width: 1px; height: 22px; }
-  .footer-top { flex-direction: column; }
   .footer-showcase { height: 190px; }
   .fsg-tile { width: 150px; }
-  .footer-contact.info-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .footer-contact-wrap { padding: 1.25rem 1rem; }
-  .footer-contact-bg .fsg-tile { width: 140px; }
-  .footer-contact .info-card { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
-  .footer-contact .info-icon { width: 30px; height: 30px; font-size: 0.82rem; }
-  .footer-contact .info-val { font-size: 0.74rem; }
-  .footer-contact .info-lbl { font-size: 0.44rem; }
 
   .form-shell { padding: 1.25rem; max-width: 100%; }
   .booking-stepper { gap: 2px; margin-bottom: 1.1rem; }
@@ -3364,8 +3254,6 @@ overflow-x: auto;
   .svc-tabs::-webkit-scrollbar { display: none; }
   .emg-actions { flex-direction: column; }
   .btn-emg, .btn-emg-wa { justify-content: center; }
-  .service-grid { grid-template-columns: 1fr; }
-  .row-2 { grid-template-columns: 1fr; }
   .svc-item-grid { grid-auto-columns: 200px; gap: 12px; }
   .svc-item-btn { min-height: 176px; padding: 18px 16px 14px; gap: 10px; border-radius: 16px; }
   .svc-item-icon { width: 44px; height: 44px; font-size: 1.3rem; border-radius: 12px; }
@@ -3390,12 +3278,12 @@ overflow-x: auto;
 @media (max-width: 540px) {
   .spa-quicknav-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    gap: 1rem;
   }
   .spa-qcard {
-    padding: 1.1rem 1rem;
+    padding: 0.95rem 0.9rem;
   }
-  .spa-qcard-icon { font-size: 2.1rem; }
+  .spa-qcard-icon { font-size: 1.3rem; }
   .spa-view-header {
     padding: 0.75rem 1rem 0.25rem;
   }
@@ -3407,4 +3295,3 @@ overflow-x: auto;
   .svc-item-btn { min-height: 160px; padding: 15px 13px 12px; border-radius: 14px; }
   .svc-item-text { font-size: 0.78rem; }
 }
-  
