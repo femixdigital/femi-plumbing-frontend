@@ -560,7 +560,7 @@ input, textarea, [contenteditable] {
 }
 
 .slide {
-  aspect-ratio: 5 / 3;         /* ← locks in the wider "Opay card" shape */
+  aspect-ratio: 6 / 3;         /* ← locks in the wider "Opay card" shape */
   height: 280px; width: auto; flex: 0 0 auto; border-radius: 26px;
   overflow: hidden; border: 1px solid var(--glass-border2);
   box-shadow: var(--sh-lg);
