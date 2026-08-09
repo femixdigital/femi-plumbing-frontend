@@ -37,6 +37,34 @@ document.addEventListener('visibilitychange', () => {
   document.body.classList.toggle('is-tab-hidden', document.hidden);
 });
 
+/* ── Keep --nav-total in permanent sync with the header's REAL height ──
+   The header's height was previously assumed via a fixed calc() of its
+   two rows' nominal heights. That drifts whenever the logo text needs
+   more room than the row's fixed height allows (it's deliberately
+   overflow:visible so it's never clipped) — on some screen widths the
+   header renders taller than assumed, and body's fixed padding-top no
+   longer matches, letting the ticker bar visually bleed into whatever
+   comes right after it. Measuring the real rendered height directly
+   removes the guesswork entirely, on every screen size, permanently. */
+(function syncHeaderHeight() {
+  const header = document.getElementById('header');
+  if (!header) return;
+
+  function apply() {
+    const h = header.offsetHeight;
+    if (h > 0) document.documentElement.style.setProperty('--nav-total', h + 'px');
+  }
+
+  apply();
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(apply).observe(header);
+  } else {
+    window.addEventListener('resize', apply);
+  }
+  // Fonts loading in late can change text height after first paint.
+  document.fonts?.ready?.then(apply);
+})();
+
 // The fixed WhatsApp/Call bubbles sit in the same bottom-right corner as
 // the footer's own "Contact" nav card — fade them out of the way whenever
 // that card scrolls into view so they can never steal its taps.
