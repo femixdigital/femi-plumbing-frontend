@@ -680,36 +680,45 @@ input, textarea, [contenteditable] {
    bottom edge once scrolled past.
 ────────────────────────────────────────── */
 .site-search-bar {
-  position: sticky;
-  top: var(--nav-total);
+  position: fixed;
+  top: 16px;
+  right: 76px;
   z-index: 850;
-  background: rgba(7,10,20,0.92);
-  backdrop-filter: blur(14px) saturate(1.3);
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 0.65rem 1.75rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: auto;
 }
 
-[data-theme="light"] .site-search-bar { background: rgba(230,226,216,0.92); }
+[data-theme="light"] .site-search-bar { background: transparent; }
 .site-search-inner {
-  max-width: 200px;
+  width: 44px;
+  height: 44px;
+  max-width: 44px;
+  overflow: hidden;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--bg-input);
+  background: rgba(20,25,40,0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border2);
   border-radius: var(--radius-pill);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   box-shadow: var(--sh-sm);
-  transition: border-color var(--t2), box-shadow var(--t2);
+  transition: max-width 0.35s cubic-bezier(0.22,1,0.36,1), border-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
 }
-.site-search-bar:focus-within .site-search-inner { border-color: var(--gold); box-shadow: var(--sh-sm), 0 0 0 3px var(--gold-glow); }
+.site-search-bar:focus-within .site-search-inner { max-width: 260px; border-color: var(--gold); box-shadow: var(--sh-sm), 0 0 0 3px var(--gold-glow); }
 .site-search-icon { color: var(--text-muted); flex-shrink: 0; }
 .site-search-input {
   flex: 1; min-width: 0; background: none; border: none; outline: none;
   color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 16px;
+  width: 0; opacity: 0;
+  transition: width 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease 0.1s;
 }
+.site-search-bar:focus-within .site-search-input { width: 100%; opacity: 1; }
 .site-search-input::placeholder { color: var(--text-muted); }
 .site-search-clear {
   flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
@@ -720,8 +729,12 @@ input, textarea, [contenteditable] {
 .site-search-clear:hover { background: var(--gold-glow); color: var(--gold-lt); }
 
 .site-search-results {
-  max-width: var(--container);
-  margin: 8px auto 0;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
   background: var(--bg-card);
   border: 1px solid var(--glass-border2);
   border-radius: var(--radius-lg);
@@ -748,8 +761,8 @@ input, textarea, [contenteditable] {
 .site-search-empty { padding: 0.9rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
 
 @media (max-width: 640px) {
-  .site-search-bar { padding: 0.1rem 0.1rem; }
-  .site-search-input { font-size: 13px; }
+  .site-search-bar { right: 64px; top: 14px; }
+  .site-search-input { font-size: 16px; }
 }
 
 /* ──────────────────────────────────────────
@@ -770,13 +783,12 @@ input, textarea, [contenteditable] {
 
 .nav-bar {
   height: var(--header-h);
-  width: 100%;
-  max-width: 100;
-  box-sizing: border-box;
-  padding: 0 0.5rem;
+  padding: 0 0.75rem;
   display: flex;
   align-items: center;
-  justify-content: space-between; gap: 0.5rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  container-type: inline-size;
 }
 
 .logo-wrap {
@@ -815,26 +827,27 @@ input, textarea, [contenteditable] {
 
 .logo-name {
   font-family: 'Syne', sans-serif; font-weight: 900;
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-size: clamp(0.75rem, 5.5cqw, 1.35rem);
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: 0.06em; line-height: 1.5; display: block;
+  letter-spacing: 0.02em; line-height: 1; display: block;
   color: var(--text-primary);
 }
+
 .logo-name em {
   font-style: normal;
   color: var(--gold-lt);
 }
 
 .logo-sub {
-  font-family: 'Space Mono', monospace; 
-  font-size: clamp(0.77rem, 1.1vw, 0.65rem);
-  letter-spacing: 0.09em; text-transform: lowercase;
-  min-width: 0;
+  font-family: 'Space Mono', monospace; font-size: clamp(0.32rem, 2cqw, 0.42rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--text-muted); display: block; margin-top: 2px;
-  text-align: center;
 }
 
 .desk-nav { display: flex; align-items: center; gap: 0.9rem; flex-shrink: 0; }
@@ -2710,7 +2723,6 @@ body {
   padding-top: 0;
   padding-bottom: 2rem;
 }
-
 /* ──────────────────────────────────────────
    INSTANT QUOTE ESTIMATOR
 ────────────────────────────────────────── */
@@ -3242,7 +3254,6 @@ body {
   .footer-showcase-row, .footer-tagline-track,
   .scroll-line, .emg-icon { animation: none !important; }
 }
-
 /* Decorative, always-on animations add up on a phone's battery/CPU for
    zero benefit while the tab isn't even visible — pause them the same
    way the particle canvas already pauses itself. */
