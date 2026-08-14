@@ -1418,38 +1418,48 @@ const SEARCH_INDEX = [
     results.hidden = false;
   }
 
-  function runSearch(raw) {
-    const q = raw.trim().toLowerCase();
-    clearBtn.hidden = !q;
-    if (!q) {
-      results.hidden = true;
-      input.setAttribute('aria-expanded', 'false');
-      return;
-    }
-    const matches = SEARCH_INDEX.filter(item =>
-      item.label.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q)
-    );
-    input.setAttribute('aria-expanded', 'true');
-    renderResults(matches);
-  }
-
-  function selectMatch(match) {
+ function selectMatch(match) {
     if (!match) return;
     match.action();
     results.hidden = true;
     input.value = '';
     clearBtn.hidden = true;
     input.setAttribute('aria-expanded', 'false');
+    bar.classList.remove('is-expanded');
+  }
+
+  function runSearch(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      results.hidden = true;
+      currentMatches = [];
+      return;
+    }
+    const matches = SEARCH_INDEX.filter(item =>
+      item.label.toLowerCase().includes(q) ||
+      item.keywords.toLowerCase().includes(q)
+    );
+    renderResults(matches);
+    input.setAttribute('aria-expanded', matches.length ? 'true' : 'false');
+    clearBtn.hidden = false;
   }
 
   input.addEventListener('input', () => runSearch(input.value));
-  input.addEventListener('focus', () => { if (input.value.trim()) runSearch(input.value); });
+  input.addEventListener('focus', () => {
+    bar.classList.add('is-expanded');
+    if (input.value.trim()) runSearch(input.value);
+  });
+
+  clearBtn.addEventListener('pointerdown', (e) => e.preventDefault());
 
   clearBtn.addEventListener('click', () => {
     input.value = '';
     results.hidden = true;
     clearBtn.hidden = true;
-    input.focus();
+    input.setAttribute('aria-expanded', 'false');
+    bar.classList.remove('is-expanded');
+    input.blur();
+    clearBtn.blur();
   });
 
   results.addEventListener('click', e => {
@@ -1476,12 +1486,16 @@ const SEARCH_INDEX = [
       selectMatch(currentMatches[activeIndex] ?? currentMatches[0]);
     } else if (e.key === 'Escape') {
       results.hidden = true;
+      bar.classList.remove('is-expanded');
       input.blur();
     }
   });
 
-  document.addEventListener('click', e => {
-    if (!bar.contains(e.target)) results.hidden = true;
+  document.addEventListener('pointerdown', (e) => {
+    if (!bar.contains(e.target)) {
+      bar.classList.remove('is-expanded');
+      results.hidden = true;
+    }
   });
 })();
 
