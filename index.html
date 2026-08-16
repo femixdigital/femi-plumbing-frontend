@@ -181,22 +181,26 @@
 
   <div class="ticker-bar" aria-hidden="true">
     <div class="ticker-inner">
-      <span>Femix Plumbing Services</span><span class="tsep">✦</span>
-      <span>FEMIX Plumbing</span><span class="tsep">✦</span>
-      <span>24/7 Emergency</span><span class="tsep">✦</span>
-      <span>Professional Plumbing</span><span class="tsep">✦</span>
-      <span>Licensed & Certified</span><span class="tsep">✦</span>
-      <span>Ile Ife · Osun State</span><span class="tsep">✦</span>
-      <span>Free Consultation</span><span class="tsep">✦</span>
-      <span>Premium Materials</span><span class="tsep">✦</span>
-      <span>Plumbing Services</span><span class="tsep">✦</span>
-      <span>Femix Plumbing</span><span class="tsep">✦</span>
-      <span>24/7 Emergency</span><span class="tsep">✦</span>
-      <span>Professional Plumbing and water engineering solutions</span><span class="tsep">✦</span>
-      <span>Licensed & Certified</span><span class="tsep">✦</span>
-      <span>Ile Ife · Osun State</span><span class="tsep">✦</span>
-      <span>Free Consultation</span><span class="tsep">✦</span>
-      <span>Premium Materials</span><span class="tsep">✦</span>
+      <span>FEMIX PLUMBING SERVICES</span><span class="tsep">✦</span>
+      <span><span>PROFESSIONAL PLUMBING & WATER ENGINEERING</span><span class="tsep">✦</span>
+      <span>PRECISION. RELIABILITY. BUILT TO LAST.</span><span class="tsep">✦</span>
+      <span><span>RESIDENTIAL · COMMERCIAL · INDUSTRIAL</span><span class="tsep">✦</span>
+      <span>WATER SYSTEMS · BOREHOLES · PUMPS · DRAINAGE</span><span class="tsep">✦</span>
+      <span><span>INSTALLATION · REPAIRS · MAINTENANCE</span><span class="tsep">✦</span>
+      <span>ADVANCED LEAK DETECTION & DIAGNOSTICS</span><span class="tsep">✦</span>
+      <span>24/7 EMERGENCY PLUMBING RESPONSE</span><span class="tsep">✦</span>
+      <span>QUALITY WORKMANSHIP · PREMIUM MATERIALS</span><span class="tsep">✦</span>
+      <span>ILE-IFE · OSUN STATE · NIGERIA</span><span class="tsep">✦</span>
+      <span>FEMIX PLUMBING SERVICES</span><span class="tsep">✦</span>
+      <span>PROFESSIONAL PLUMBING & WATER ENGINEERING</span><span class="tsep">✦</span>
+      <span>PRECISION. RELIABILITY. BUILT TO LAST.</span><span class="tsep">✦</span>
+      <span>RESIDENTIAL · COMMERCIAL · INDUSTRIAL</span><span class="tsep">✦</span>
+      <span>WATER SYSTEMS · BOREHOLES · PUMPS · DRAINAGE</span><span class="tsep">✦</span>
+      <span>INSTALLATION · REPAIRS · MAINTENANCE</span><span class="tsep">✦</span>
+      <span>ADVANCED LEAK DETECTION & DIAGNOSTICS</span><span class="tsep">✦</span>
+      <span>24/7 EMERGENCY PLUMBING RESPONSE</span><span class="tsep">✦</span>
+      <span>QUALITY WORKMANSHIP · PREMIUM MATERIALS</span><span class="tsep">✦</span>
+      <span>ILE-IFE · OSUN STATE · NIGERIA</span><span class="tsep">✦</span>
     </div>
   </div>
 </header>
@@ -1712,8 +1716,6 @@
   </button>
 </nav>
 
-
-
   
 <script src="script.js" defer></script>
 <script>
@@ -1725,5 +1727,16 @@
     });
   }
 </script>
+
+
+<script>
+function syncHeaderHeight(){
+  const header = document.getElementById('header');
+  document.documentElement.style.setProperty('--nav-total', header.offsetHeight + 'px');
+}
+window.addEventListener('load', syncHeaderHeight);
+window.addEventListener('resize', syncHeaderHeight);
+new ResizeObserver(syncHeaderHeight).observe(document.getElementById('header'));
+</script>      
 </body>
 </html>
